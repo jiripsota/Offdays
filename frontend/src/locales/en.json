@@ -1,0 +1,134 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "create": "Create",
+    "next": "Next",
+    "back": "Back",
+    "error": "Error"
+  },
+  "sidebar": {
+    "my_items": "My Items",
+    "all_items": "All Items",
+    "groups_header": "MY GROUPS",
+    "administration_header": "ADMINISTRATION",
+    "users": "Users",
+    "groups": "Groups",
+    "tags": "Tags",
+    "audit_log": "Audit Log",
+    "light_mode": "Light mode",
+    "dark_mode": "Dark mode",
+    "switch_light": "Switch to light mode",
+    "switch_dark": "Switch to dark mode",
+    "collapse": "Collapse",
+    "expand": "Expand sidebar",
+    "logout": "Logout"
+  },
+  "auth": {
+    "admin_title": "Offdays Admin",
+    "login_title": "Sign in using your company Google account.",
+    "login_button": "Sign in with Google",
+    "login_failed": "Failed to start Google login.",
+    "access_denied": "Access denied. You cancelled the login process.",
+    "missing_code": "Login failed. Authorization code was missing.",
+    "hero_title": "Secure your digital assets with enterprise-grade protection.",
+    "landing_hero_title": "Offdays - time off, done right",
+    "hero_subtitle": "Offdays provides a seamless, secure, and smart way to manage your company's sensitive information.",
+    "footer": "Protected by Offdays Enterprise Security",
+    "feature_security": "Enterprise Security",
+    "feature_encryption": "End-to-End Encryption",
+    "login_subtitle": "Access your organization's vault",
+    "legal_agreement": "By signing in, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
+  },
+  "not_found": {
+    "title": "404 – Not found",
+    "description": "The page you are looking for does not exist.",
+    "back_home": "Back to home"
+  },
+  "admin": {
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage all users in the system.",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "last_login": "Last Login",
+      "last_login_never": "Never logged in",
+      "admin": "Admin",
+      "user": "User",
+      "active": "Active",
+      "inactive": "Inactive",
+      "loading": "Loading users...",
+      "failed_load": "Failed to load users: {{error}}",
+      "search_placeholder": "Search users by name or email...",
+      "add_google": "Add from Google Workspace",
+      "workspace_users_title": "Google Workspace Directory",
+      "workspace_users_description": "Search and pre-provision users from your Google Workspace directory.",
+      "search_prompt": "Type at least 2 characters to search...",
+      "no_users_found": "No users found.",
+      "import_success": "User Imported",
+      "import_success_desc": "{{name}} has been successfully added.",
+      "import_failed": "Import Failed",
+      "tooltips": {
+        "add_google": "Add users from Google Workspace",
+        "import_user": "Import User",
+        "cannot_change_self_role": "You cannot change your own role",
+        "remove_admin_rights": "Remove admin rights",
+        "make_admin": "Make admin",
+        "cannot_deactivate_self": "You cannot deactivate yourself",
+        "deactivate_user": "Deactivate user",
+        "activate_user": "Activate user",
+        "user_already_imported": "User is already imported",
+        "limit_reached": "Plan limit reached"
+      }
+    }
+  },
+  "language": {
+    "select": "Select language"
+  },
+  "billing": {
+    "title": "Subscription",
+    "subtitle": "Manage your subscription plan and usage.",
+    "current_plan": "Current Plan",
+    "status": "Status",
+    "usage": "Usage",
+    "trial_ends": "Trial ends on {{date}}",
+    "seats": "Seats",
+    "seats_detail": "{{used}} of {{limit}} seats used",
+    "sync": "Sync with Marketplace",
+    "growth_shield_limit": "Growth Shield hard limit: {{limit}} users",
+    "manage_subscription": "Manage Subscription",
+    "status_types": {
+      "active": "Active",
+      "trial": "Trial",
+      "past_due": "Past Due",
+      "cancelled": "Cancelled",
+      "unpaid": "Unpaid",
+      "expired": "Expired"
+    },
+    "trial_expired_title": "Trial Expired",
+    "trial_expired_desc": "Your trial period has ended. Please upgrade your subscription to continue using Vaultiqo.",
+    "upgrade_now": "Upgrade Subscription",
+    "plan_expired_warning": "Please upgrade to restore access.",
+    "plans": {
+      "SMALL_MONTHLY": "Small",
+      "SMALL_ANNUAL": "Small - Annual",
+      "MEDIUM_MONTHLY": "Medium",
+      "MEDIUM_ANNUAL": "Medium - Annual",
+      "LARGE_MONTHLY": "Large",
+      "LARGE_ANNUAL": "Large - Annual",
+      "ENTERPRISE_MONTHLY": "Enterprise",
+      "ENTERPRISE_ANNUAL": "Enterprise - Annual",
+      "TRIAL": "Trial"
+    },
+    "alerts": {
+      "upgrade_needed": "Upgrade Needed",
+      "upgrade_suggestion": "You are approaching your seat limit.",
+      "upgrade_blocked": "You have exceeded your plan limits. Please upgrade to add more users."
+    }
+  }
+}

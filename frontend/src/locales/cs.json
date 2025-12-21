@@ -1,0 +1,131 @@
+{
+  "common": {
+    "loading": "Načítání...",
+    "saving": "Ukládání...",
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "delete": "Smazat",
+    "close": "Zavřít",
+    "create": "Vytvořit",
+    "next": "Další",
+    "back": "Zpět",
+    "error": "Chyba"
+  },
+  "sidebar": {
+    "my_items": "Moje položky",
+    "all_items": "Všechny položky",
+    "groups_header": "MOJE SKUPINY",
+    "administration_header": "ADMINISTRACE",
+    "users": "Uživatelé",
+    "groups": "Skupiny",
+    "tags": "Štítky",
+    "audit_log": "Audit log",
+    "light_mode": "Světlý režim",
+    "dark_mode": "Tmavý režim",
+    "switch_light": "Přepnout na světlý režim",
+    "switch_dark": "Přepnout na tmavý režim",
+    "collapse": "Sbalit",
+    "expand": "Rozbalit boční panel",
+    "logout": "Odhlásit se"
+  },
+  "auth": {
+    "login_title": "Přihlaste se pomocí firemního Google účtu.",
+    "login_button": "Přihlásit se přes Google",
+    "login_failed": "Nepodařilo se zahájit přihlášení přes Google.",
+    "access_denied": "Přístup byl odepřen. Přihlašování jste zrušili.",
+    "missing_code": "Přihlášení selhalo. Chybí autorizační kód.",
+    "hero_title": "Zabezpečte svá digitální aktiva špičkovou ochranou.",
+    "hero_subtitle": "Offdays poskytuje bezproblémový, bezpečný a chytrý způsob správy citlivých informací vaší společnosti.",
+    "footer": "Chráněno podnikovým zabezpečením Offdays",
+    "feature_encryption": "End-to-End šifrování",
+    "login_subtitle": "Vstupte do firemního trezoru",
+    "legal_agreement": "Přihlášením souhlasíte s našimi <terms>Smluvními podmínkami</terms> a <privacy>Zásadami ochrany osobních údajů</privacy>."
+  },
+  "not_found": {
+    "title": "404 – Nenalezeno",
+    "description": "Stránka, kterou hledáte, neexistuje.",
+    "back_home": "Zpět na domovskou stránku"
+  },
+  "admin": {
+    "users": {
+      "title": "Správa uživatelů",
+      "subtitle": "Spravujte všechny uživatele v systému.",
+      "name": "Jméno",
+      "role": "Role",
+      "status": "Stav",
+      "last_login": "Poslední přihlášení",
+      "last_login_never": "Nikdy nepřihlášen",
+      "admin": "Administrátor",
+      "user": "Uživatel",
+      "active": "Aktivní",
+      "inactive": "Neaktivní",
+      "loading": "Načítání uživatelů...",
+      "failed_load": "Nepodařilo se načíst uživatele: {{error}}",
+      "search_placeholder": "Hledat uživatele podle jména nebo e-mailu...",
+      "add_google": "Přidat z Google Workspace",
+      "workspace_users_title": "Adresář Google Workspace",
+      "workspace_users_description": "Vyhledejte a přidejte uživatele přímo z vašeho Google Workspace adresáře.",
+      "search_prompt": "Zadejte alespoň 2 znaky pro vyhledávání...",
+      "no_users_found": "Nebyli nalezeni žádní uživatelé.",
+      "import_success": "Uživatel importován",
+      "import_success_desc": "{{name}} byl úspěšně přidán.",
+      "import_failed": "Import selhal",
+      "tooltips": {
+        "add_google": "Přidat uživatele z Google Workspace",
+        "import_user": "Importovat uživatele",
+        "cannot_change_self_role": "Nemůžete změnit svou vlastní roli",
+        "remove_admin_rights": "Odebrat práva administrátora",
+        "make_admin": "Jmenovat administrátorem",
+        "cannot_deactivate_self": "Nemůžete deaktivovat sami sebe",
+        "deactivate_user": "Deaktivovat uživatele",
+        "activate_user": "Aktivovat uživatele",
+        "user_already_imported": "Uživatel je již v systému",
+        "limit_reached": "Limit plánu vyčerpán"
+      }
+    }
+  },
+  "language": {
+    "select": "Vybrat jazyk"
+  },
+  "billing": {
+    "title": "Předplatné",
+    "subtitle": "Spravujte své předplatné a využití.",
+    "current_plan": "Aktuální plán",
+    "status": "Stav",
+    "usage": "Využití",
+    "trial_ends": "Zkušební verze končí {{date}}",
+    "seats": "Místa",
+    "seats_detail": "{{used}} z {{limit}} míst využito",
+    "sync": "Synchronizovat s Marketplace",
+    "growth_shield_limit": "Growth Shield tvrdý limit: {{limit}} uživatelů",
+    "manage_subscription": "Spravovat předplatné",
+    "status_types": {
+      "active": "Aktivní",
+      "trial": "Zkušební verze",
+      "past_due": "Po splatnosti",
+      "cancelled": "Zrušeno",
+      "unpaid": "Nezaplaceno",
+      "expired": "Vypršelo"
+    },
+    "trial_expired_title": "Zkušební verze vypršela",
+    "trial_expired_desc": "Vaše zkušební období skončilo. Pro pokračování v používání Vaultiqo prosím upgradujte své předplatné.",
+    "upgrade_now": "Upgradovat předplatné",
+    "plan_expired_warning": "Pro obnovení přístupu prosím upgradujte.",
+    "plans": {
+      "SMALL_MONTHLY": "Small",
+      "SMALL_ANNUAL": "Small - Roční",
+      "MEDIUM_MONTHLY": "Medium",
+      "MEDIUM_ANNUAL": "Medium - Roční",
+      "LARGE_MONTHLY": "Large",
+      "LARGE_ANNUAL": "Large - Roční",
+      "ENTERPRISE_MONTHLY": "Enterprise",
+      "ENTERPRISE_ANNUAL": "Enterprise - Roční",
+      "TRIAL": "Zkušební verze"
+    },
+    "alerts": {
+      "upgrade_needed": "Nutný upgrade",
+      "upgrade_suggestion": "Blížíte se k limitu počtu míst.",
+      "upgrade_blocked": "Překročili jste limity plánu. Prosím upgradujte pro přidání uživatelů."
+    }
+  }
+}

@@ -1,0 +1,20 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: offdays-frontend
+  labels:
+    cloud.googleapis.com/location: europe-west1
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+    spec:
+      containers:
+        - image: gcr.io/${PROJECT_ID}/vaultiqo-frontend:latest
+          ports:
+            - containerPort: 8080
+          # We might need to handle runtime env injection for Vite if not baking it in
+          # But typically Vite envs are build-time. 
+          # For runtime config, we'd need a window.__env config solution

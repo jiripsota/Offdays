@@ -20,7 +20,8 @@ import {
   Folder,
   CreditCard,
   AlertCircle,
-  Play
+  Play,
+  CheckSquare
 } from "lucide-react";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useTokenRefresh } from "../../hooks/useTokenRefresh";
@@ -191,7 +192,13 @@ function SidebarContent({
           exact
           onClick={handleNavClick}
         />
-
+        <SidebarNavItem
+          to="/approvals"
+          label={t("sidebar.approvals", "Approvals")}
+          icon={CheckSquare}
+          collapsed={collapsed}
+          onClick={handleNavClick}
+        />
 
 
         {user.is_admin && (
@@ -449,7 +456,7 @@ export function AppLayout() {
 
         {/* Mobile Sidebar */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="right" className="w-64 p-0">
             <SidebarContent
               user={user}
 

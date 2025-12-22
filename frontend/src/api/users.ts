@@ -9,12 +9,14 @@ export interface User {
   created_at: string;
   picture?: string | null;
   last_login?: string | null;
+  supervisor_id?: string | null;
 }
 
 export interface UserUpdatePayload {
   full_name?: string | null;
   is_admin?: boolean;
   is_active?: boolean;
+  supervisor_id?: string | null;
 }
 
 export interface UserCreatePayload {

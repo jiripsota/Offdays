@@ -40,7 +40,12 @@ def seed_initial_data(engine: Engine):
     """
     Seed initial data (Plans, etc.) into the database.
     Does NOT modify schema structure - that is Alembic's job.
+    HOWEVER, for local dev simplicity (no alembic run required after wipe), we create tables here.
     """
+    # Create tables if not exist (DEV ONLY convenience)
+    from .database import Base
+    Base.metadata.create_all(bind=engine)
+
     # We need a session here
     from .database import SessionLocal
     db = SessionLocal()

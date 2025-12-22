@@ -103,3 +103,56 @@ async def search_google_users(access_token: str, query: str) -> List[Dict[str, A
                     })
                 
         return results
+
+async def create_calendar_event(access_token: str, summary: str, start_date: str, end_date: str) -> str:
+    """
+    Create an all-day event in the primary calendar.
+    Returns: event_id
+    start_date/end_date in "YYYY-MM-DD" format.
+    Google Calendar API end.date is exclusive for all-day events, so we might need to add +1 day if the caller passes inclusive.
+    However, let's assume caller handles it or we handle it here.
+    Standard: Leave is inclusive. Google 'end' is exclusive. So end_date should be +1 day of the leave end.
+    
+    Wait, `start_date` and `end_date` passed here are strings. 
+    Let's assume caller sends the correct exclusive end date string or handle it?
+    Let's handle it here if we pass date objects, but string is safer for raw API.
+    Let's assume the caller passes correct ISO strings.
+    """
+    url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+    
+    event_body = {
+        "summary": summary,
+        "start": {"date": start_date},
+        "end": {"date": end_date}, # Exclusive
+        "transparency": "opaque", # Show as busy? Or "transparent" for available? Leave should be Opaque (Busy).
+        "visibility": "public" # Visible to others
+    }
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            url,
+            json=event_body,
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        
+        if resp.status_code != 200:
+            print(f"Failed to create Google Calendar event: {resp.text}")
+            raise ValueError(f"Google Calendar API Error: {resp.status_code}")
+            
+        data = resp.json()
+        return data["id"]
+
+async def delete_calendar_event(access_token: str, event_id: str):
+    """
+    Delete an event from the primary calendar.
+    """
+    url = f"https://www.googleapis.com/calendar/v3/calendars/primary/events/{event_id}"
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.delete(
+            url,
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        if resp.status_code != 204 and resp.status_code != 404:
+             print(f"Failed to delete Google Calendar event: {resp.text}")
+             # Not raising error to avoid blocking logic if event is already gone

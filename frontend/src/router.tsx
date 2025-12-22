@@ -6,6 +6,8 @@ import { PremiumErrorBoundary } from "./components/ui/PremiumErrorBoundary";
 import { AdminUsersPage } from "./components/admin/AdminUsersPage";
 import { AdminSubscriptionPage } from "./components/admin/AdminSubscriptionPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { ApprovalsPage } from "./pages/ApprovalsPage";
 
 const router = createBrowserRouter([
   {
@@ -18,9 +20,10 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     errorElement: <PremiumErrorBoundary />,
     children: [
-      { index: true, element: <AdminUsersPage /> },
+      { index: true, element: <DashboardPage /> },
       { path: "admin/users", element: <AdminUsersPage /> },
       { path: "admin/subscription", element: <AdminSubscriptionPage /> },
+      { path: "approvals", element: <ApprovalsPage /> },
     ],
   },
   {

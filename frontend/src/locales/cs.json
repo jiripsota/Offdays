@@ -108,7 +108,7 @@
       "expired": "Vypršelo"
     },
     "trial_expired_title": "Zkušební verze vypršela",
-    "trial_expired_desc": "Vaše zkušební období skončilo. Pro pokračování v používání Vaultiqo prosím upgradujte své předplatné.",
+    "trial_expired_desc": "Vaše zkušební období skončilo. Pro pokračování v používání Offdays prosím upgradujte své předplatné.",
     "upgrade_now": "Upgradovat předplatné",
     "plan_expired_warning": "Pro obnovení přístupu prosím upgradujte.",
     "plans": {
@@ -127,5 +127,47 @@
       "upgrade_suggestion": "Blížíte se k limitu počtu míst.",
       "upgrade_blocked": "Překročili jste limity plánu. Prosím upgradujte pro přidání uživatelů."
     }
+  },
+  "dashboard": {
+    "title": "Můj přehled",
+    "subtitle": "Přehled vaší dovolené a žádostí."
+  },
+  "leaves": {
+    "remaining": "Zbývá",
+    "remaining_desc": "Dny k dispozici tento rok",
+    "used": "Vyčerpáno / Plánováno",
+    "used_desc": "Dny vyžádané nebo vyčerpané",
+    "total": "Celkový nárok",
+    "total_desc": "Smluvní nárok na rok",
+    "accrued": "Aktuální nárok",
+    "accrued_desc": "Vzniklý nárok k dnešnímu dni",
+    "new_request_btn": "Požádat o dovolenou",
+    "recent_requests": "Nedávné žádosti",
+    "recent_requests_desc": "Historie vašich žádostí o volno.",
+    "no_requests": "Žádné žádosti nebyly nalezeny.",
+    "request_cancel": "Požádat o zrušení",
+    "delete_success": "Žádost byla úspěšně stažena",
+    "cancel-request_success": "Žádost o zrušení byla odeslána",
+    "select_on_calendar": "Vyberte dny v kalendáři",
+    "total_days_label": "Celkem dní",
+    "working_days_label": "Pracovních dní",
+    "new_request": "Nová žádost o dovolenou",
+    "approvals": "Schvalování",
+    "approvals_desc": "Spravujte žádosti o dovolenou od svého týmu.",
+    "pending_requests": "Čekající žádosti",
+    "no_pending": "Žádné čekající žádosti.",
+    "deny_cancel": "Zamítnout zrušení",
+    "approve_cancel": "Potvrdit zrušení",
+    "approved": "Schváleno",
+    "rejected": "Zamítnuto",
+    "request_approved_desc": "Žádost byla úspěšně schválena.",
+    "request_rejected_desc": "Žádost byla zamítnuta."
+  },
+  "status": {
+    "approved": "Schváleno",
+    "rejected": "Zamítnuto",
+    "pending": "Čeká na vyřízení",
+    "cancel_pending": "Čeká na zrušení",
+    "cancelled": "Zrušeno"
   }
 }

@@ -111,7 +111,7 @@
       "expired": "Expired"
     },
     "trial_expired_title": "Trial Expired",
-    "trial_expired_desc": "Your trial period has ended. Please upgrade your subscription to continue using Vaultiqo.",
+    "trial_expired_desc": "Your trial period has ended. Please upgrade your subscription to continue using Offdays.",
     "upgrade_now": "Upgrade Subscription",
     "plan_expired_warning": "Please upgrade to restore access.",
     "plans": {
@@ -130,5 +130,47 @@
       "upgrade_suggestion": "You are approaching your seat limit.",
       "upgrade_blocked": "You have exceeded your plan limits. Please upgrade to add more users."
     }
+  },
+  "dashboard": {
+    "title": "My Dashboard",
+    "subtitle": "Overview of your leave and requests."
+  },
+  "leaves": {
+    "remaining": "Remaining",
+    "remaining_desc": "Days available this year",
+    "used": "Used / Planned",
+    "used_desc": "Days requested or taken",
+    "total": "Full Allowance",
+    "total_desc": "Contractual entitlement",
+    "accrued": "Accrued So Far",
+    "accrued_desc": "Based on days worked",
+    "new_request_btn": "Request Time Off",
+    "recent_requests": "Recent Requests",
+    "recent_requests_desc": "History of your time off requests.",
+    "no_requests": "No requests found.",
+    "request_cancel": "Request Cancellation",
+    "delete_success": "Request withdrawn successfully",
+    "cancel-request_success": "Cancellation requested successfully",
+    "select_on_calendar": "Select dates on calendar",
+    "total_days_label": "Total Days",
+    "working_days_label": "Working Days",
+    "new_request": "New Leave Request",
+    "approvals": "Approvals",
+    "approvals_desc": "Manage leave requests from your team.",
+    "pending_requests": "Pending Requests",
+    "no_pending": "No pending requests.",
+    "deny_cancel": "Deny Cancellation",
+    "approve_cancel": "Confirm Cancellation",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "request_approved_desc": "The request has been approved.",
+    "request_rejected_desc": "The request has been rejected."
+  },
+  "status": {
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "cancel_pending": "Cancel Pending",
+    "cancelled": "Cancelled"
   }
 }

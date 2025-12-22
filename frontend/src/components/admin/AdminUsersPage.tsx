@@ -11,9 +11,11 @@ import {
   CheckCircle,
   Ban,
   Users,
-  UserPlus
+  UserPlus,
+  Settings
 } from "lucide-react";
 import { GoogleUserSearchSheet } from "./GoogleUserSearchSheet";
+import { UserEditSheet } from "./UserEditSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +48,7 @@ export function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showGoogleSearch, setShowGoogleSearch] = useState(false);
   const { status: billingStatus } = useBillingStatus();
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // Load current user so we can disable self-modification
   const { data: currentUser } = useQuery<CurrentUser, Error>({
@@ -350,6 +353,25 @@ export function AdminUsersPage() {
                             </TooltipContent>
                           </Tooltip>
 
+
+
+                          {/* Edit User Button */}
+                           <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-all"
+                                onClick={() => setEditingUser(user)}
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {t("admin.users.tooltips.edit_settings", "Edit Settings")}
+                            </TooltipContent>
+                          </Tooltip>
+
                           {/* Active / disabled toggle button */}
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -428,6 +450,12 @@ export function AdminUsersPage() {
       <GoogleUserSearchSheet
         open={showGoogleSearch} 
         onOpenChange={setShowGoogleSearch} 
+      />
+      
+      <UserEditSheet 
+        user={editingUser}
+        open={!!editingUser}
+        onOpenChange={(open) => !open && setEditingUser(null)}
       />
     </div>
   );

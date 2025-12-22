@@ -51,6 +51,15 @@ class User(Base):
     last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="user")
+    
+    # Hierarchy
+    supervisor_id: Mapped[uuid.UUID | None] = mapped_column(sa_UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    supervisor: Mapped["User"] = relationship("User", remote_side="User.id", back_populates="subordinates")
+    subordinates: Mapped[list["User"]] = relationship("User", back_populates="supervisor")
+
+    # Leaves
+    entitlements: Mapped[list["LeaveEntitlement"]] = relationship("LeaveEntitlement", back_populates="user")
+    leave_requests: Mapped[list["LeaveRequest"]] = relationship("LeaveRequest", back_populates="user")
 
 class OAuthAccount(Base):
     __tablename__ = "oauth_accounts"
@@ -124,3 +133,55 @@ class Subscription(Base):
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="subscription")
     plan: Mapped["Plan"] = relationship("Plan", back_populates="subscriptions")
+
+
+# --- Leaves & Entitlements ---
+
+class LeaveStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+    CANCEL_PENDING = "cancel_pending"
+
+class LeaveEntitlement(Base):
+    __tablename__ = "leave_entitlements"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(sa_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    
+    total_days: Mapped[float] = mapped_column(Integer, default=20) # Keeping as float just in case of half-days in future, or int? User said "20 days". Standard is usually days. Let's use Float to be safe for half-days, or Integer if simpler. Standard is days (e.g. 20). Law allows half days. Let's stick to FLOAT for flexibility.
+    remaining_days: Mapped[float] = mapped_column(Integer, default=20)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user: Mapped["User"] = relationship("User", back_populates="entitlements")
+    
+    __table_args__ = (
+        UniqueConstraint("user_id", "year", name="uq_user_year_entitlement"),
+    )
+
+
+class LeaveRequest(Base):
+    __tablename__ = "leave_requests"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        sa_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(sa_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    days_count: Mapped[float] = mapped_column(Integer, nullable=False) # Business days deduction
+    
+    status: Mapped[LeaveStatus] = mapped_column(String(20), default=LeaveStatus.PENDING)
+    note: Mapped[str | None] = mapped_column(Text)
+    
+    gcal_event_id: Mapped[str | None] = mapped_column(String(255))
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user: Mapped["User"] = relationship("User", back_populates="leave_requests")

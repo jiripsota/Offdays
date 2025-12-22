@@ -25,6 +25,13 @@ class Settings(BaseModel):
     # Cloud Storage Bucket for public assets (avatars)
     google_storage_bucket: str = os.getenv("GCS_BUCKET_NAME", "vaultiqo-assets")
 
+    # SMTP Settings
+    smtp_host: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user: str = os.getenv("SMTP_USER", "")
+    smtp_password: str = os.getenv("SMTP_PASSWORD", "")
+    emails_from_email: str = os.getenv("EMAILS_FROM_EMAIL", "noreply@offdays.app")
+
 
     # Cookie security
     # Default to False in dev (detected by lack of K_SERVICE), True in Cloud Run

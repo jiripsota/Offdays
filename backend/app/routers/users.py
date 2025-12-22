@@ -198,6 +198,16 @@ def update_user(
                 )
         user.is_active = payload.is_active
 
+    if payload.supervisor_id is not None:
+        # Validate supervisor exists
+        supervisor = db.get(models.User, payload.supervisor_id)
+        if not supervisor:
+             raise HTTPException(status_code=400, detail="Supervisor not found")
+        # Prevent circular or self supervision?
+        if supervisor.id == user.id:
+            raise HTTPException(status_code=400, detail="User cannot be their own supervisor")
+        user.supervisor_id = payload.supervisor_id
+
     db.commit()
     db.refresh(user)
 

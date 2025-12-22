@@ -9,7 +9,13 @@
     "create": "Create",
     "next": "Next",
     "back": "Back",
-    "error": "Error"
+    "error": "Error",
+    "days": "days",
+    "days_short": "d",
+    "actions": "Actions",
+    "submit": "Submit Request",
+    "none": "None",
+    "save": "Save Changes"
   },
   "sidebar": {
     "my_items": "My Items",
@@ -35,13 +41,13 @@
     "login_failed": "Failed to start Google login.",
     "access_denied": "Access denied. You cancelled the login process.",
     "missing_code": "Login failed. Authorization code was missing.",
-    "hero_title": "Secure your digital assets with enterprise-grade protection.",
+    "hero_title": "Smart leave management for modern teams.",
     "landing_hero_title": "Offdays - time off, done right",
-    "hero_subtitle": "Offdays provides a seamless, secure, and smart way to manage your company's sensitive information.",
-    "footer": "Protected by Offdays Enterprise Security",
-    "feature_security": "Enterprise Security",
-    "feature_encryption": "End-to-End Encryption",
-    "login_subtitle": "Access your organization's vault",
+    "hero_subtitle": "Offdays seamlessly integrates with Google Workspace to handle vacations, sick days, and approvals.",
+    "footer": "Powered by Offdays HR Platform",
+    "feature_security": "Google Workspace Integration",
+    "feature_encryption": "Smart Approval Workflows",
+    "login_subtitle": "Sign in to manage your time off",
     "legal_agreement": "By signing in, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
   },
   "not_found": {
@@ -65,6 +71,12 @@
       "loading": "Loading users...",
       "failed_load": "Failed to load users: {{error}}",
       "search_placeholder": "Search users by name or email...",
+      "select_supervisor": "Select supervisor",
+      "edit_user": "Edit User",
+      "edit_user_desc": "Manage supervisor and leave entitlement.",
+      "supervisor": "Supervisor",
+      "update_success": "User updated successfully",
+      "update_failed": "Failed to update user",
       "add_google": "Add from Google Workspace",
       "workspace_users_title": "Google Workspace Directory",
       "workspace_users_description": "Search and pre-provision users from your Google Workspace directory.",
@@ -83,7 +95,8 @@
         "deactivate_user": "Deactivate user",
         "activate_user": "Activate user",
         "user_already_imported": "User is already imported",
-        "limit_reached": "Plan limit reached"
+        "limit_reached": "Plan limit reached",
+        "edit_settings": "Edit Settings"
       }
     }
   },
@@ -129,7 +142,9 @@
       "upgrade_needed": "Upgrade Needed",
       "upgrade_suggestion": "You are approaching your seat limit.",
       "upgrade_blocked": "You have exceeded your plan limits. Please upgrade to add more users."
-    }
+    },
+    "failed_load": "Failed to load subscription status.",
+    "cycle_billing": "Billing"
   },
   "dashboard": {
     "title": "My Dashboard",
@@ -164,7 +179,18 @@
     "approved": "Approved",
     "rejected": "Rejected",
     "request_approved_desc": "The request has been approved.",
-    "request_rejected_desc": "The request has been rejected."
+    "request_rejected_desc": "The request has been rejected.",
+    "days": "Days",
+    "note": "Note (Optional)",
+    "note_placeholder": "e.g. Vacation in Italy",
+    "over_limit_title": "Warning",
+    "over_limit_msg": "This request exceeds your remaining entitlement.",
+    "available": "Available",
+    "request_failed": "Failed to submit request",
+    "request_submitted": "Request submitted",
+    "request_submitted_desc": "Your request is pending approval.",
+    "total_days": "Total Days (Year)",
+    "remaining_days": "Remaining Days"
   },
   "status": {
     "approved": "Approved",

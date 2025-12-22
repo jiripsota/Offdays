@@ -46,18 +46,31 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
   };
   
   const checkmarkVariants = {
-      hidden: { pathLength: 0, opacity: 0, scale: 0.8 },
-      visible: { 
-        pathLength: 1, 
-        opacity: 1, 
-        scale: 1,
-        transition: { 
-          duration: 0.5, 
-          ease: "backOut",
-          delay: 0.8 // Wait for calendar body 
-        }
+    hidden: { pathLength: 0, opacity: 0, scale: 0.8 },
+    visible: { 
+      pathLength: 1, 
+      opacity: 1, 
+      scale: 1,
+      transition: { 
+        duration: 0.5, 
+        ease: "backOut",
+        delay: 1.2 // Wait for blocks 
       }
-    };
+    }
+  };
+
+  const blockVariants = {
+    hidden: { opacity: 0, scale: 0.5 },
+    visible: (i: number) => ({ 
+      opacity: 0.4, // Keep them subtle
+      scale: 1,
+      transition: { 
+        duration: 0.4,
+        delay: 0.5 + i * 0.05,
+        ease: "easeOut"
+      }
+    })
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background transition-colors duration-300">
@@ -66,7 +79,7 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
         <motion.svg
           width="160"
           height="160"
-          viewBox="0 0 100 100" // Standardized viewBox for easier drawing
+          viewBox="0 0 100 100"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
@@ -77,19 +90,18 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
           <motion.path 
             d="M80 88H20C14.4772 88 10 83.5228 10 78V28C10 22.4772 14.4772 18 20 18H80C85.5228 18 90 22.4772 90 28V78C90 83.5228 85.5228 88 80 88Z"
             stroke={teal}
-            strokeWidth="6" // Thick stroke like the logo
+            strokeWidth="6"
             fill="transparent"
             variants={pathVariants}
           />
           
-          {/* Top Line inside calendar (optional detail from logo, simplified here for cleaner animation) */}
-             <motion.path 
+          {/* Top Line inside calendar */}
+          <motion.path 
             d="M10 40H90"
             stroke={teal}
             strokeWidth="4" 
             fill="transparent"
             variants={pathVariants} 
-             custom={0.2} // slight delay
           />
 
           {/* Bindings / Rings */}
@@ -105,6 +117,23 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
              strokeWidth="6"
              variants={pathVariants}
           />
+
+          {/* Calendar Grid "Blocks" */}
+          {[0, 1, 2, 3].map((col) => 
+            [0, 1, 2].map((row) => (
+              <motion.rect
+                key={`${col}-${row}`}
+                x={24 + col * 15}
+                y={48 + row * 12}
+                width="8"
+                height="6"
+                rx="1.5"
+                fill={teal}
+                variants={blockVariants}
+                custom={col + row * 4}
+              />
+            ))
+          )}
 
           {/* Checkmark */}
           <motion.path 
@@ -122,7 +151,7 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
         initial={{ opacity: 0, y: 15 }}
         animate={textVisible ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="mt-4"
+        className="mt-1"
       >
          <h1 className="text-4xl font-bold tracking-wider">
             {/* Off - Standard Text Color (Dark Blue / White in Dark Mode? Or Teal in Dark Mode based on user instruction? 

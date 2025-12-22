@@ -1,8 +1,8 @@
+@import "react-day-picker/dist/style.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "react-day-picker/dist/style.css";
 
 @layer base {
   :root {

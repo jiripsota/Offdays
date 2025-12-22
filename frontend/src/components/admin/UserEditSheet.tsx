@@ -108,7 +108,7 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
                 <Label>{t("admin.users.supervisor", "Supervisor")}</Label>
                 <Select value={supervisorId} onValueChange={setSupervisorId}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Select supervisor" />
+                        <SelectValue placeholder={t("admin.users.select_supervisor")} />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="none">{t("common.none", "None")}</SelectItem>

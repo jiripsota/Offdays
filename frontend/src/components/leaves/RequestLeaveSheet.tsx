@@ -115,6 +115,20 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
         
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6 mt-8 overflow-y-auto pr-2">
             
+            {/* Warning moved to top */}
+            {isOverEntitlement && (
+                <Alert className="border-yellow-500/50 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400 rounded-2xl animate-in fade-in slide-in-from-top-2">
+                    <AlertTriangle className="h-4 w-4 stroke-yellow-500" />
+                    <AlertTitle className="font-bold">{t("leaves.over_limit_title", "Warning")}</AlertTitle>
+                    <AlertDescription className="text-sm opacity-90">
+                        {t("leaves.over_limit_msg", "This request exceeds your remaining entitlement.")}
+                        <div className="mt-1 font-bold">
+                                {t("leaves.available")}: {entitlement?.remaining_days} {t("common.days")}
+                        </div>
+                    </AlertDescription>
+                </Alert>
+            )}
+
             <div className="space-y-4">
                 <Label className="text-base font-semibold text-foreground/80">{t("leaves.select_on_calendar", "Select dates on calendar")}</Label>
                 <div className="border border-muted/30 rounded-2xl p-4 flex justify-center bg-card shadow-sm">
@@ -137,32 +151,21 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
             </div>
             
             {totalDays > 0 && (
-                <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-muted/30 p-4 rounded-2xl border border-muted/20 flex flex-col items-center justify-center text-center">
-                            <CalendarDays className="h-5 w-5 text-muted-foreground mb-1" />
-                            <div className="text-xs font-medium text-muted-foreground uppercase tracking-widest">{t("leaves.total_days_label", "Total Days")}</div>
-                            <div className="text-2xl font-bold text-foreground">{totalDays}</div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1 bg-muted/20 rounded-xl p-3 px-4 flex items-center justify-between border border-muted/20">
+                        <div className="flex items-center gap-2.5">
+                            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("leaves.total_days_label", "Total Days")}</span>
                         </div>
-                        <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex flex-col items-center justify-center text-center">
-                            <Briefcase className="h-5 w-5 text-primary mb-1" />
-                            <div className="text-xs font-medium text-primary uppercase tracking-widest">{t("leaves.working_days_label", "Working Days")}</div>
-                            <div className="text-2xl font-bold text-primary">{businessDays}</div>
-                        </div>
+                        <span className="text-xl font-bold text-foreground">{totalDays}</span>
                     </div>
-
-                    {isOverEntitlement && (
-                        <Alert className="border-yellow-500/50 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400 rounded-2xl">
-                            <AlertTriangle className="h-4 w-4 stroke-yellow-500" />
-                            <AlertTitle className="font-bold">{t("leaves.over_limit_title", "Warning")}</AlertTitle>
-                            <AlertDescription className="text-sm opacity-90">
-                                {t("leaves.over_limit_msg", "This request exceeds your remaining entitlement.")}
-                                <div className="mt-1 font-bold">
-                                     {t("leaves.available")}: {entitlement?.remaining_days} {t("common.days")}
-                                </div>
-                            </AlertDescription>
-                        </Alert>
-                    )}
+                    <div className="flex-1 bg-primary/10 rounded-xl p-3 px-4 flex items-center justify-between border border-primary/20">
+                        <div className="flex items-center gap-2.5">
+                            <Briefcase className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium text-primary uppercase tracking-wider">{t("leaves.working_days_label", "Working Days")}</span>
+                        </div>
+                        <span className="text-xl font-bold text-primary">{businessDays}</span>
+                    </div>
                 </div>
             )}
 

@@ -9,7 +9,13 @@
     "create": "Vytvořit",
     "next": "Další",
     "back": "Zpět",
-    "error": "Chyba"
+    "error": "Chyba",
+    "days": "dní",
+    "days_short": "d",
+    "actions": "Akce",
+    "submit": "Odeslat žádost",
+    "none": "Žádný",
+    "save": "Uložit změny"
   },
   "sidebar": {
     "my_items": "Moje položky",
@@ -34,11 +40,12 @@
     "login_failed": "Nepodařilo se zahájit přihlášení přes Google.",
     "access_denied": "Přístup byl odepřen. Přihlašování jste zrušili.",
     "missing_code": "Přihlášení selhalo. Chybí autorizační kód.",
-    "hero_title": "Zabezpečte svá digitální aktiva špičkovou ochranou.",
-    "hero_subtitle": "Offdays poskytuje bezproblémový, bezpečný a chytrý způsob správy citlivých informací vaší společnosti.",
-    "footer": "Chráněno podnikovým zabezpečením Offdays",
-    "feature_encryption": "End-to-End šifrování",
-    "login_subtitle": "Vstupte do firemního trezoru",
+    "hero_title": "Chytrá správa dovolené pro moderní týmy.",
+    "hero_subtitle": "Offdays se plně integruje s Google Workspace a usnadňuje správu dovolených, nemocenských a schvalování.",
+    "footer": "Běží na platformě Offdays",
+    "feature_security": "Integrace s Google Workspace",
+    "feature_encryption": "Chytré schvalovací procesy",
+    "login_subtitle": "Přihlaste se pro správu své dovolené",
     "legal_agreement": "Přihlášením souhlasíte s našimi <terms>Smluvními podmínkami</terms> a <privacy>Zásadami ochrany osobních údajů</privacy>."
   },
   "not_found": {
@@ -62,6 +69,12 @@
       "loading": "Načítání uživatelů...",
       "failed_load": "Nepodařilo se načíst uživatele: {{error}}",
       "search_placeholder": "Hledat uživatele podle jména nebo e-mailu...",
+      "select_supervisor": "Vybrat nadřízeného",
+      "edit_user": "Upravit uživatele",
+      "edit_user_desc": "Spravujte nadřízeného a nárok na dovolenou.",
+      "supervisor": "Nadřízený",
+      "update_success": "Uživatel byl úspěšně aktualizován.",
+      "update_failed": "Nepodařilo se aktualizovat uživatele.",
       "add_google": "Přidat z Google Workspace",
       "workspace_users_title": "Adresář Google Workspace",
       "workspace_users_description": "Vyhledejte a přidejte uživatele přímo z vašeho Google Workspace adresáře.",
@@ -80,7 +93,8 @@
         "deactivate_user": "Deaktivovat uživatele",
         "activate_user": "Aktivovat uživatele",
         "user_already_imported": "Uživatel je již v systému",
-        "limit_reached": "Limit plánu vyčerpán"
+        "limit_reached": "Limit plánu vyčerpán",
+        "edit_settings": "Upravit nastavení"
       }
     }
   },
@@ -126,7 +140,9 @@
       "upgrade_needed": "Nutný upgrade",
       "upgrade_suggestion": "Blížíte se k limitu počtu míst.",
       "upgrade_blocked": "Překročili jste limity plánu. Prosím upgradujte pro přidání uživatelů."
-    }
+    },
+    "failed_load": "Nepodařilo se načíst stav předplatného.",
+    "cycle_billing": "fakturace"
   },
   "dashboard": {
     "title": "Můj přehled",
@@ -161,7 +177,18 @@
     "approved": "Schváleno",
     "rejected": "Zamítnuto",
     "request_approved_desc": "Žádost byla úspěšně schválena.",
-    "request_rejected_desc": "Žádost byla zamítnuta."
+    "request_rejected_desc": "Žádost byla zamítnuta.",
+    "days": "Dny",
+    "note": "Poznámka (Volitelné)",
+    "note_placeholder": "např. Dovolená v Itálii",
+    "over_limit_title": "Varování",
+    "over_limit_msg": "Tato žádost překračuje váš zbývající nárok.",
+    "available": "K dispozici",
+    "request_failed": "Nepodařilo se odeslat žádost",
+    "request_submitted": "Žádost odeslána",
+    "request_submitted_desc": "Vaše žádost čeká na schválení.",
+    "total_days": "Celkem dní (Rok)",
+    "remaining_days": "Zbývající dny"
   },
   "status": {
     "approved": "Schváleno",

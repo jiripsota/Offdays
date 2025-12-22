@@ -69,7 +69,7 @@ export function AdminSubscriptionPage() {
   };
 
   if (!loading && !status) {
-      return <div className="p-8">Failed to load subscription status.</div>;
+      return <div className="p-8">{t("billing.failed_load")}</div>;
   }
 
   return (
@@ -161,7 +161,7 @@ export function AdminSubscriptionPage() {
                             <div>{t("billing.trial_ends", { date: format(new Date(status!.trial_ends_at), "PPP", { locale: dateLocale }) })}</div>
                         )}
                         {status!.plan?.cycle && !status!.trial_ends_at && (
-                            <div className="capitalize">{status!.plan.cycle} Billing</div>
+                            <div className="capitalize">{status!.plan.cycle} {t("billing.cycle_billing")}</div>
                         )}
                     </div>
 

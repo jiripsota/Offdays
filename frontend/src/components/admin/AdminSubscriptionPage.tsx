@@ -73,18 +73,15 @@ export function AdminSubscriptionPage() {
   }
 
   return (
-    <div className="flex-1 overflow-auto p-3 md:p-5 space-y-4 bg-background/50">
+    <div className="flex-1 overflow-auto p-6 space-y-8 bg-background/50">
       {/* Header / Hero Section */}
-      <div className="relative">
-        <div className="absolute -top-10 -left-10 w-48 h-48 bg-primary/5 rounded-full blur-[80px] pointer-events-none" />
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-6">
           <div className="flex items-center gap-4">
-            <div className="p-2.5 bg-primary/10 rounded-xl shadow-inner border-primary/10 group/icon transition-all duration-300">
-              <CreditCard className="w-6 h-6 text-primary group-hover/icon:scale-110 transition-transform duration-300" />
+            <div className="p-3 bg-primary/10 rounded-xl shadow-inner border-primary/10 group/icon transition-all duration-300">
+              <CreditCard className="w-8 h-8 text-primary group-hover/icon:scale-110 transition-transform duration-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
                 {t("billing.title")}
               </h1>
               <p className="text-sm text-muted-foreground/80 font-medium">
@@ -92,7 +89,6 @@ export function AdminSubscriptionPage() {
               </p>
             </div>
           </div>
-        </div>
       </div>
 
       {/* Alerts */}

@@ -15,10 +15,16 @@
     "actions": "Actions",
     "submit": "Submit Request",
     "none": "None",
-    "save": "Save Changes"
+    "save": "Save Changes",
+    "success": "Success",
+    "confirm_title": "Are you sure?",
+    "confirm_desc": "This action cannot be undone.",
+    "confirm": "Confirm"
   },
   "sidebar": {
+    "dashboard": "Dashboard",
     "my_items": "My Items",
+    "approvals": "Approvals",
     "all_items": "All Items",
     "groups_header": "MY GROUPS",
     "administration_header": "ADMINISTRATION",
@@ -166,6 +172,12 @@
     "request_cancel": "Request Cancellation",
     "delete_success": "Request withdrawn successfully",
     "cancel-request_success": "Cancellation requested successfully",
+    "tooltips": {
+        "approve": "Approve Request",
+        "reject": "Reject Request",
+        "approve_cancel": "Confirm Cancellation",
+        "deny_cancel": "Deny Cancellation"
+    },
     "select_on_calendar": "Select dates on calendar",
     "total_days_label": "Total Days",
     "working_days_label": "Working Days",
@@ -181,7 +193,9 @@
     "request_approved_desc": "The request has been approved.",
     "request_rejected_desc": "The request has been rejected.",
     "days": "Days",
-    "note": "Note (Optional)",
+    "date": "Date",
+    "note": "Note",
+    "note": "Note",
     "note_placeholder": "e.g. Vacation in Italy",
     "over_limit_title": "Warning",
     "over_limit_msg": "This request exceeds your remaining entitlement.",

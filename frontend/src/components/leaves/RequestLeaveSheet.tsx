@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format, differenceInBusinessDays, addDays, isWeekend, eachDayOfInterval, isSameDay } from "date-fns";
+import { cs } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
@@ -8,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { Loader2, AlertTriangle, CalendarDays, Briefcase } from "lucide-react";
+import { Loader2, AlertTriangle, CalendarDays, Briefcase, CalendarPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -42,17 +44,45 @@ interface RequestLeaveSheetProps {
 }
 
 export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }: RequestLeaveSheetProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  
+  // Date-fns locale
+  const dateLocale = i18n.language === 'cs' ? cs : undefined;
+  // Note: Dynamic import for locale might be tricky inside render or we can just import both top level
   
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const { data: requests } = useQuery({
+      queryKey: ["my-requests"],
+      queryFn: async () => {
+          const res = await fetch("/api/leaves/me/requests", {
+              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          });
+          if (!res.ok) throw new Error("Failed");
+          return res.json();
+      }
+  });
+
+  const isDayInRequests = (date: Date, statuses: string[]) => {
+      const dateStr = format(date, "yyyy-MM-dd");
+      return requests?.some((req: any) => 
+          statuses.includes(req.status) &&
+          dateStr >= req.start_date && 
+          dateStr <= req.end_date
+      );
+  };
+
   const calculateDays = (start: Date, end: Date) => {
       const days = eachDayOfInterval({ start, end });
-      const total = days.length;
-      const business = days.filter(d => !isWeekend(d) && !isCZHoliday(d)).length;
+      
+      // Filter out days that are already APPROVED
+      const effectiveDays = days.filter(d => !isDayInRequests(d, ["approved"]));
+      
+      const total = effectiveDays.length;
+      const business = effectiveDays.filter(d => !isWeekend(d) && !isCZHoliday(d)).length;
       return { total, business };
   };
 
@@ -105,86 +135,127 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col h-full bg-background/95 backdrop-blur-md">
-        <SheetHeader>
-          <SheetTitle className="text-2xl font-bold tracking-tight">{t("leaves.new_request", "New Leave Request")}</SheetTitle>
-          <SheetDescription>
-            {t("leaves.new_request_desc", "Select the dates for your leave. Your supervisor will review the request.")}
-          </SheetDescription>
+      <SheetContent 
+        side="right" 
+        className="w-[400px] sm:w-[700px] sm:max-w-2xl p-0 flex flex-col h-full bg-background/95 backdrop-blur-md" 
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <SheetHeader className="px-6 py-6 border-b border-border/40 flex-row items-center gap-4 space-y-0">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 shadow-inner">
+            <CalendarPlus className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <SheetTitle className="text-lg font-bold truncate leading-tight">
+              {t("leaves.new_request", "New Leave Request")}
+            </SheetTitle>
+            <p className="text-xs text-muted-foreground truncate opacity-70">
+              {t("leaves.new_request_desc", "Select the dates for your leave. Your supervisor will review the request.")}
+            </p>
+          </div>
         </SheetHeader>
         
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6 mt-8 overflow-y-auto pr-2">
-            
-            {/* Warning moved to top */}
-            {isOverEntitlement && (
-                <Alert className="border-yellow-500/50 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400 rounded-2xl animate-in fade-in slide-in-from-top-2">
-                    <AlertTriangle className="h-4 w-4 stroke-yellow-500" />
-                    <AlertTitle className="font-bold">{t("leaves.over_limit_title", "Warning")}</AlertTitle>
-                    <AlertDescription className="text-sm opacity-90">
-                        {t("leaves.over_limit_msg", "This request exceeds your remaining entitlement.")}
-                        <div className="mt-1 font-bold">
-                                {t("leaves.available")}: {entitlement?.remaining_days} {t("common.days")}
-                        </div>
-                    </AlertDescription>
-                </Alert>
-            )}
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                
+                {/* Warning */}
+                {isOverEntitlement && (
+                    <Alert className="border-yellow-500/50 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400 rounded-2xl animate-in fade-in slide-in-from-top-2">
+                        <AlertTriangle className="h-4 w-4 stroke-yellow-500" />
+                        <AlertTitle className="font-bold">{t("leaves.over_limit_title", "Warning")}</AlertTitle>
+                        <AlertDescription className="text-sm opacity-90">
+                            {t("leaves.over_limit_msg", "This request exceeds your remaining entitlement.")}
+                            <div className="mt-1 font-bold">
+                                    {t("leaves.available")}: {entitlement?.remaining_days} {t("common.days")}
+                            </div>
+                        </AlertDescription>
+                    </Alert>
+                )}
 
-            <div className="space-y-4">
-                <Label className="text-base font-semibold text-foreground/80">{t("leaves.select_on_calendar", "Select dates on calendar")}</Label>
-                <div className="border border-muted/30 rounded-2xl p-4 flex justify-center bg-card shadow-sm">
-                    <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        disabled={{ before: new Date() }}
-                        modifiers={{
-                            weekend: (date) => isWeekend(date),
-                            holiday: (date) => isCZHoliday(date)
-                        }}
-                        modifiersClassNames={{
-                            weekend: "text-red-500/80 font-medium",
-                            holiday: "text-red-600 font-bold decoration-red-600/30 underline underline-offset-4"
-                        }}
-                        className="rounded-md border-0"
+                <div className="flex flex-col md:flex-row gap-8">
+                    {/* Calendar Section */}
+                    <div className="flex-1">
+                        <Label className="text-base font-semibold text-foreground/80 mb-3 block">{t("leaves.select_on_calendar", "Select dates on calendar")}</Label>
+                        
+                        <div className="border border-muted/30 rounded-2xl p-4 flex justify-center bg-card shadow-sm">
+                            <Calendar
+                                mode="range"
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                disabled={{ before: new Date() }}
+                                locale={dateLocale}
+                                modifiers={{
+                                    weekend: (date) => isWeekend(date),
+                                    holiday: (date) => isCZHoliday(date),
+                                    approved: (date) => isDayInRequests(date, ["approved"]),
+                                    pending: (date) => isDayInRequests(date, ["pending", "cancel_pending"])
+                                }}
+                                modifiersClassNames={{
+                                    weekend: "text-red-500/80 font-medium",
+                                    holiday: "text-red-600 font-bold decoration-red-600/30 underline underline-offset-4",
+                                    approved: "bg-emerald-500/10 text-emerald-700 font-bold hover:bg-emerald-500/20",
+                                    pending: "bg-amber-500/10 text-amber-700 font-medium hover:bg-amber-500/20"
+                                }}
+                                className="rounded-md border-0"
+                            />
+                        </div>
+
+                         {/* Legend - Moved below calendar */}
+                         <div className="flex justify-center gap-6 mt-4 text-[10px] font-medium uppercase tracking-wider">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500" />
+                                <span className="text-muted-foreground">{t("status.approved")}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500" />
+                                <span className="text-muted-foreground">{t("status.pending")}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stats Section - Narrower & Aligned */}
+                    <div className="w-full md:w-[200px] flex flex-col gap-4 mt-9">
+                         {/* Stats Cards */}
+                        <div className="bg-muted/20 rounded-xl p-4 border border-muted/20 space-y-4 sticky top-0">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("leaves.total_days_label")}</span>
+                                </div>
+                                <span className="text-3xl font-bold text-foreground">{totalDays}</span>
+                            </div>
+                            
+                            <div className="h-px bg-border/50" />
+
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Briefcase className="h-4 w-4 text-primary" />
+                                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">{t("leaves.working_days_label")}</span>
+                                </div>
+                                <span className="text-3xl font-bold text-primary">{businessDays}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Note Section - Full Width at Bottom */}
+                <div className="space-y-2 pt-2">
+                    <Label className="text-base font-semibold text-foreground/80">{t("leaves.note")}</Label>
+                    <Textarea 
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder={t("leaves.note_placeholder", "e.g. Vacation in Italy")}
+                        className="min-h-[100px] resize-none focus-visible:ring-offset-0"
                     />
                 </div>
             </div>
-            
-            {totalDays > 0 && (
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1 bg-muted/20 rounded-xl p-3 px-4 flex items-center justify-between border border-muted/20">
-                        <div className="flex items-center gap-2.5">
-                            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("leaves.total_days_label", "Total Days")}</span>
-                        </div>
-                        <span className="text-xl font-bold text-foreground">{totalDays}</span>
-                    </div>
-                    <div className="flex-1 bg-primary/10 rounded-xl p-3 px-4 flex items-center justify-between border border-primary/20">
-                        <div className="flex items-center gap-2.5">
-                            <Briefcase className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-medium text-primary uppercase tracking-wider">{t("leaves.working_days_label", "Working Days")}</span>
-                        </div>
-                        <span className="text-xl font-bold text-primary">{businessDays}</span>
-                    </div>
-                </div>
-            )}
 
-            <div className="space-y-2">
-                <Label className="text-base font-semibold text-foreground/80">{t("leaves.note", "Note (Optional)")}</Label>
-                <Textarea 
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder={t("leaves.note_placeholder", "e.g. Vacation in Italy")}
-                    className="min-h-[100px] rounded-2xl border-muted/30 focus:ring-primary/20 transition-all shadow-sm"
-                />
-            </div>
-
-            <div className="mt-auto pt-6 border-t border-muted/10">
+            {/* Sticky Footer with Shadow */}
+            <div className="p-6 bg-background shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.5)] mt-auto z-20 flex justify-end relative">
                  <Button 
                     type="submit" 
                     size="lg"
                     disabled={isLoading || !dateRange?.from || !dateRange?.to} 
-                    className="w-full rounded-2xl font-bold h-12 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+                    className="w-full sm:w-auto min-w-[200px] rounded-2xl font-bold h-12 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
                 >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {t("common.submit", "Submit Request")}

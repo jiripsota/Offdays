@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { cs, enUS } from "date-fns/locale";
-import { Plus, LayoutDashboard, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Loader2, Briefcase, CalendarDays, PieChart, CheckSquare } from "lucide-react";
+import { Plus, LayoutDashboard, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Loader2, Briefcase, CalendarDays, PieChart, CheckSquare, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,6 +11,16 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/hooks/use-toast";
 import { RequestLeaveSheet } from "@/components/leaves/RequestLeaveSheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const fetchEntitlement = async () => {
   const token = localStorage.getItem("token");
@@ -30,30 +40,39 @@ const fetchRequests = async () => {
   return res.json();
 }
 
+const getCzechDaysLabel = (count: number) => {
+    if (count === 1) return "den";
+    if (count >= 2 && count <= 4) return "dny";
+    return "dní";
+};
+
 export function DashboardPage() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const [showRequestSheet, setShowRequestSheet] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{id: string, action: "delete" | "cancel-request"} | null>(null);
 
   const dateLocale = i18n.language === 'cs' ? cs : enUS;
 
-  const { data: entitlement, isLoading: loadingEntitlement, refetch: refetchEntitlement } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { data: entitlement, isLoading: loadingEntitlement } = useQuery({
     queryKey: ["entitlement"],
     queryFn: fetchEntitlement
   });
 
-  const { data: requests, isLoading: loadingRequests, refetch: refetchRequests } = useQuery({
+  const { data: requests, isLoading: loadingRequests } = useQuery({
     queryKey: ["my-requests"],
     queryFn: fetchRequests
   });
 
   const handleSuccess = () => {
-    refetchEntitlement();
-    refetchRequests();
+    queryClient.invalidateQueries({ queryKey: ["entitlement"] });
+    queryClient.invalidateQueries({ queryKey: ["my-requests"] });
   };
 
-  const handleAction = async (requestId: string, action: "delete" | "cancel-request") => {
+  const executeAction = async (requestId: string, action: "delete" | "cancel-request") => {
       setIsActionLoading(requestId);
       try {
           const method = action === "delete" ? "DELETE" : "POST";
@@ -79,7 +98,12 @@ export function DashboardPage() {
           });
       } finally {
           setIsActionLoading(null);
+          setConfirmDialog(null);
       }
+  };
+
+  const handleActionClick = (requestId: string, action: "delete" | "cancel-request") => {
+      setConfirmDialog({ id: requestId, action });
   };
 
   const statusBadge = (status: string) => {
@@ -190,52 +214,64 @@ export function DashboardPage() {
                 <p className="text-muted-foreground">{t("leaves.no_requests", "No requests found.")}</p>
             </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {requests?.map((req: any) => (
-                    <Card key={req.id} className="group hover:shadow-md transition-all duration-300">
-                        <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                            <Badge variant="outline" className="w-fit">{req.days_count} {t("common.days", "days")}</Badge>
+                    <Card key={req.id} className="group relative hover:shadow-md transition-all duration-300 overflow-hidden">
+                        {/* Action Buttons - Top Right (Float) */}
+                         <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {req.status === "pending" && (
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    disabled={!!isActionLoading}
+                                    onClick={() => handleActionClick(req.id, "delete")}
+                                    title={t("common.cancel", "Withdraw")}
+                                >
+                                    {isActionLoading === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                                </Button>
+                            )}
+                            
+                            {req.status === "approved" && (
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    disabled={!!isActionLoading}
+                                    onClick={() => handleActionClick(req.id, "cancel-request")}
+                                    title={t("leaves.request_cancel", "Request Cancellation")}
+                                >
+                                    {isActionLoading === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                                </Button>
+                            )}
+                         </div>
+
+                        <CardHeader className="pb-2 pt-4 px-4 flex flex-row items-center justify-between space-y-0">
                             {statusBadge(req.status)}
                         </CardHeader>
-                        <CardContent>
-                             <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 bg-muted/30 rounded-lg group-hover:bg-primary/5 group-hover:text-primary transition-colors">
-                                    <CalendarIcon className="h-5 w-5" />
-                                </div>
-                                <div className="text-sm font-medium">
-                                    {format(new Date(req.start_date), "dd. MMM", { locale: dateLocale })} - {format(new Date(req.end_date), "dd. MMM yyyy", { locale: dateLocale })}
+
+                        <CardContent className="px-4 pb-4">
+                             <div className="mb-2">
+                                <div className="text-lg font-bold text-foreground">
+                                    {format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale }) ? (
+                                        <span>{format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale })}</span>
+                                    ) : (
+                                        <span>
+                                            {format(new Date(req.start_date), "d. MMM", { locale: dateLocale })} - {format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale })}
+                                        </span>
+                                    )}
                                 </div>
                              </div>
-                             
-                             {req.note && (
-                                <p className="text-sm text-muted-foreground italic mb-4 line-clamp-2">
-                                    "{req.note}"
-                                </p>
-                             )}
 
-                             <div className="flex justify-end pt-2 border-t mt-auto">
-                                {req.status === "pending" && (
-                                    <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        className="text-destructive hover:bg-destructive/10 hover:text-destructive w-full justify-center"
-                                        disabled={!!isActionLoading}
-                                        onClick={() => handleAction(req.id, "delete")}
-                                    >
-                                        {isActionLoading === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : t("common.cancel", "Withdraw")}
-                                    </Button>
-                                )}
+                             <div className="flex items-center justify-between mt-4">
+                                <Badge variant="secondary" className="font-normal text-xs">
+                                    {req.days_count} {i18n.language === 'cs' ? getCzechDaysLabel(req.days_count) : t("common.days", "days")}
+                                </Badge>
                                 
-                                {req.status === "approved" && (
-                                    <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        className="w-full justify-center text-xs"
-                                        disabled={!!isActionLoading}
-                                        onClick={() => handleAction(req.id, "cancel-request")}
-                                    >
-                                        {isActionLoading === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : t("leaves.request_cancel", "Request Cancellation")}
-                                    </Button>
+                                {req.note && (
+                                    <span className="text-xs text-muted-foreground italic truncate max-w-[100px]" title={req.note}>
+                                        {req.note}
+                                    </span>
                                 )}
                              </div>
                         </CardContent>
@@ -251,6 +287,23 @@ export function DashboardPage() {
         onSuccess={handleSuccess}
         entitlement={entitlement}
       />
+
+      <AlertDialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>{t("common.confirm_title", "Are you sure?")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                    {t("common.confirm_desc", "This action cannot be undone.")}
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => confirmDialog && executeAction(confirmDialog.id, confirmDialog.action)}>
+                    {t("common.confirm", "Confirm")}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { cs, enUS } from "date-fns/locale";
-import { Check, X, Calendar as CalendarIcon, Loader2, CheckSquare } from "lucide-react";
+import { Check, X, Calendar as CalendarIcon, Loader2, CheckSquare, CheckCircle, Ban } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,6 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const fetchApprovals = async () => {
     const token = localStorage.getItem("token");
@@ -99,10 +105,10 @@ export function ApprovalsPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>{t("admin.users.name", "Name")}</TableHead>
-                                    <TableHead>{t("admin.users.role", "Dates")}</TableHead>
+                                    <TableHead>{t("leaves.date", "Date")}</TableHead>
                                     <TableHead className="w-[100px]">{t("leaves.days", "Days")}</TableHead>
                                     <TableHead>{t("leaves.note", "Note")}</TableHead>
-                                    <TableHead className="text-right">{t("common.actions", "Actions")}</TableHead>
+                                    <TableHead className="text-right"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -129,7 +135,12 @@ export function ApprovalsPage() {
                                         <TableCell>
                                             <div className="flex items-center gap-2 text-sm text-foreground/80">
                                                 <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                                                {format(new Date(req.start_date), "d. MMM", { locale: dateLocale })} - {format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale })}
+                                                {format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale }) 
+                                                    ? format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale })
+                                                    : <>
+                                                        {format(new Date(req.start_date), "d. MMM", { locale: dateLocale })} - {format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale })}
+                                                      </>
+                                                }
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -146,26 +157,41 @@ export function ApprovalsPage() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button 
-                                                    size="sm" 
-                                                    variant="ghost" 
-                                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                    disabled={!!actionLoading}
-                                                    onClick={() => handleAction(req.id, "reject")}
-                                                    title={req.status === "cancel_pending" ? t("leaves.deny_cancel", "Deny") : t("common.reject", "Reject")}
-                                                >
-                                                    {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <X className="h-4 w-4"/>}
-                                                </Button>
-                                                <Button 
-                                                    size="sm" 
-                                                    variant="ghost"
-                                                    className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                    disabled={!!actionLoading}
-                                                    onClick={() => handleAction(req.id, "approve")}
-                                                    title={req.status === "cancel_pending" ? t("leaves.approve_cancel", "Confirm Cancellation") : t("common.approve", "Approve")}
-                                                >
-                                                    {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Check className="h-4 w-4"/>}
-                                                </Button>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant="ghost" 
+                                                                className="h-8 w-8 p-0 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-all"
+                                                                disabled={!!actionLoading}
+                                                                onClick={() => handleAction(req.id, "reject")}
+                                                            >
+                                                                {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Ban className="h-4 w-4"/>}
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {req.status === "cancel_pending" ? t("leaves.tooltips.deny_cancel") : t("leaves.tooltips.reject")}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant="ghost"
+                                                                className="h-8 w-8 p-0 text-muted-foreground/50 hover:text-emerald-600 hover:bg-emerald-500/10 transition-all"
+                                                                disabled={!!actionLoading}
+                                                                onClick={() => handleAction(req.id, "approve")}
+                                                            >
+                                                                {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <CheckCircle className="h-4 w-4"/>}
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {req.status === "cancel_pending" ? t("leaves.tooltips.approve_cancel") : t("leaves.tooltips.approve")}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </div>
                                         </TableCell>
                                     </TableRow>

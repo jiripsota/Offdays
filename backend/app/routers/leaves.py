@@ -77,27 +77,81 @@ def get_my_requests(
     ).all()
     return requests
 
-@router.post("/request", response_model=LeaveRequestRead)
-async def create_leave_request(
-    request: LeaveRequestCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Create a new leave request.
-    Calculates business days automatically.
-    """
-    if request.end_date < request.start_date:
-        raise HTTPException(status_code=400, detail="End date must be after start date")
+from datetime import date
 
-    days_count = calculate_business_days(request.start_date, request.end_date)
+async def _create_request_internal(
+    db: Session, 
+    current_user: User, 
+    start_date: date, 
+    end_date: date, 
+    note: str, 
+    send_email: bool = True
+) -> LeaveRequest:
+    from app.logic.workdays import is_weekend, is_holiday
+
+    # 0. SMART TRIM DATES
+    # Advance start_date if weekend/holiday
+    while start_date <= end_date and (is_weekend(start_date) or is_holiday(start_date)):
+        start_date += timedelta(days=1)
+        
+    # Regress end_date if weekend/holiday
+    while end_date >= start_date and (is_weekend(end_date) or is_holiday(end_date)):
+        end_date -= timedelta(days=1)
+        
+    if start_date > end_date:
+        # This happens if the entire range was weekends/holidays
+        raise HTTPException(status_code=400, detail="No business days to request in this specific range.")
+
+    # 1. FIND OVERLAPS
+    overlaps = db.scalars(
+        select(LeaveRequest).where(
+            LeaveRequest.user_id == current_user.id,
+            LeaveRequest.start_date <= end_date,
+            LeaveRequest.end_date >= start_date,
+            LeaveRequest.status.in_([LeaveStatus.PENDING, LeaveStatus.APPROVED, LeaveStatus.CANCEL_PENDING])
+        )
+    ).all()
+
+    # 2. RESOLVE OVERLAPS
+    approved_dates = set()
+    
+    for ol in overlaps:
+        if ol.status in [LeaveStatus.PENDING, LeaveStatus.CANCEL_PENDING]:
+            # Delete pending overlap
+            db.delete(ol)
+        elif ol.status == LeaveStatus.APPROVED:
+            ov_start = max(ol.start_date, start_date)
+            ov_end = min(ol.end_date, end_date)
+            
+            curr = ov_start
+            while curr <= ov_end:
+                 approved_dates.add(curr)
+                 curr += timedelta(days=1)
+
+    # 3. CALCULATE NET DAYS
+    days_count = 0.0
+    from app.logic.workdays import is_weekend, is_holiday
+    
+    curr = start_date
+    while curr <= end_date:
+        if curr not in approved_dates:
+            if not is_weekend(curr) and not is_holiday(curr):
+                days_count += 1.0
+        curr += timedelta(days=1)
+        
+    if days_count <= 0:
+        # If splitting, one part might have 0 days (e.g. weekends), so we shouldn't error out hard 
+        # unless it's the ONLY request. But for now, let's allow 0-day requests if they are part of a split? 
+        # Actually standard logic forbids 0 days. 
+        # If a split results in 0 working days (e.g. Jan 1-2 is weekend/holiday), it effectively shouldn't exist.
+        raise HTTPException(status_code=400, detail="No new business days to request in this specific range.")
     
     new_request = LeaveRequest(
         user_id=current_user.id,
-        start_date=request.start_date,
-        end_date=request.end_date,
+        start_date=start_date,
+        end_date=end_date,
         days_count=days_count,
-        note=request.note,
+        note=note,
         status=LeaveStatus.PENDING
     )
     
@@ -106,30 +160,73 @@ async def create_leave_request(
     db.refresh(new_request)
 
     # EMAIL NOTIFICATION
-    try:
-        recipient_email = None
-        if current_user.supervisor_id:
-            supervisor = db.get(User, current_user.supervisor_id)
-            if supervisor:
-                recipient_email = supervisor.email
-        
-        if not recipient_email:
-            admin = db.scalar(select(User).where(User.is_admin == True).limit(1))
-            if admin:
-                recipient_email = admin.email
+    if send_email:
+        try:
+            recipient_email = None
+            if current_user.supervisor_id:
+                supervisor = db.get(User, current_user.supervisor_id)
+                if supervisor:
+                    recipient_email = supervisor.email
+            
+            if not recipient_email:
+                admin = db.scalar(select(User).where(User.is_admin == True).limit(1))
+                if admin:
+                    recipient_email = admin.email
 
-        if recipient_email:
-            await send_new_request_email(
-                to_email=recipient_email,
-                requester_name=current_user.full_name or current_user.email,
-                start_date=str(request.start_date),
-                end_date=str(request.end_date),
-                days=days_count
-            )
-    except Exception as e:
-        print(f"Failed to send email: {e}")
+            if recipient_email:
+                await send_new_request_email(
+                    to_email=recipient_email,
+                    requester_name=current_user.full_name or current_user.email,
+                    start_date=str(start_date),
+                    end_date=str(end_date),
+                    days=days_count
+                )
+        except Exception as e:
+            print(f"Failed to send email: {e}")
 
     return new_request
+
+@router.post("/request", response_model=LeaveRequestRead)
+async def create_leave_request(
+    request: LeaveRequestCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create a new leave request.
+    Automatically splits requests across year boundaries.
+    """
+    if request.end_date < request.start_date:
+        raise HTTPException(status_code=400, detail="End date must be after start date")
+
+    # Check for Year Split
+    if request.start_date.year != request.end_date.year:
+        # Range 1: Start -> Dec 31
+        dec31 = date(request.start_date.year, 12, 31)
+        
+        req1 = None
+        try:
+            req1 = await _create_request_internal(db, current_user, request.start_date, dec31, request.note)
+        except HTTPException:
+            # It's possible one part has 0 business days (e.g. just weekends). 
+            # We should probably catch and ignore if the OTHER part is valid.
+            pass
+
+        # Range 2: Jan 1 -> End
+        jan1 = date(request.end_date.year, 1, 1)
+        req2 = None
+        try:
+            req2 = await _create_request_internal(db, current_user, jan1, request.end_date, request.note)
+        except HTTPException:
+            pass
+
+        if not req1 and not req2:
+            raise HTTPException(status_code=400, detail="No business days found in the selected range.")
+
+        # Return the first successful one for schema compliance, user will see both in dashboard
+        return req1 if req1 else req2
+    else:
+        return await _create_request_internal(db, current_user, request.start_date, request.end_date, request.note)
 
 @router.delete("/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
 def cancel_pending_request(

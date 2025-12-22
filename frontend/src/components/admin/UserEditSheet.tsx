@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserCog } from "lucide-react";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -94,15 +94,22 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-        <SheetHeader>
-          <SheetTitle>{t("admin.users.edit_user", "Edit User")}: {user?.full_name || user?.email}</SheetTitle>
-          <SheetDescription>
-            {t("admin.users.edit_user_desc", "Manage supervisor and leave entitlement.")}
-          </SheetDescription>
+      <SheetContent side="right" className="w-[400px] sm:w-[540px] p-0 flex flex-col" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <SheetHeader className="px-6 py-6 border-b border-border/40 flex-row items-center gap-4 space-y-0">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 shadow-inner">
+            <UserCog className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <SheetTitle className="text-lg font-bold truncate leading-tight">
+              {t("admin.users.edit_user", "Edit User")}: {user?.full_name || user?.email}
+            </SheetTitle>
+            <p className="text-xs text-muted-foreground truncate opacity-70">
+              {t("admin.users.edit_user_desc", "Manage supervisor and leave entitlement.")}
+            </p>
+          </div>
         </SheetHeader>
         
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6 px-6 py-6 flex-1 overflow-y-auto min-h-0">
             
             <div className="space-y-2">
                 <Label>{t("admin.users.supervisor", "Supervisor")}</Label>
@@ -139,13 +146,14 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
                     />
                 </div>
             </div>
-
-            <SheetFooter>
-                <Button onClick={() => updateMutation.mutate()} disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {t("common.save", "Save Changes")}
-                </Button>
-            </SheetFooter>
+        </div>
+        
+        {/* Sticky Footer */}
+        <div className="p-6 border-t bg-background shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] mt-auto z-20">
+            <Button onClick={() => updateMutation.mutate()} disabled={isLoading} className="w-full">
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t("common.save", "Save Changes")}
+            </Button>
         </div>
       </SheetContent>
     </Sheet>

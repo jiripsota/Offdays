@@ -135,16 +135,16 @@ export function ApprovalsPage() {
                                         <TableCell>
                                             <div className="flex items-center gap-2 text-sm text-foreground/80">
                                                 <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                                                {format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale }) 
-                                                    ? format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale })
+                                                {format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale }) 
+                                                    ? format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale })
                                                     : <>
-                                                        {format(new Date(req.start_date), "d. MMM", { locale: dateLocale })} - {format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale })}
+                                                        {format(new Date(req.start_date), "d. M.", { locale: dateLocale })} - {format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale })}
                                                       </>
                                                 }
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant="secondary">{req.days_count} {t("common.days_short", "d")}</Badge>
+                                            <Badge variant="secondary">{req.days_count.toLocaleString(i18n.language)}</Badge>
                                         </TableCell>
                                         <TableCell className="max-w-[200px]">
                                             {req.note ? (

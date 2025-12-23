@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format, differenceInBusinessDays, addDays, isWeekend, eachDayOfInterval, isSameDay } from "date-fns";
@@ -13,6 +13,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Loader2, AlertTriangle, CalendarDays, Briefcase, CalendarPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 
 // Simple CZ Holiday list for frontend preview
 const CZ_HOLIDAYS = [
@@ -54,6 +55,8 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [startHalfDay, setStartHalfDay] = useState(false);
+  const [endHalfDay, setEndHalfDay] = useState(false);
 
   const { data: requests } = useQuery({
       queryKey: ["my-requests"],
@@ -86,9 +89,28 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
       return { total, business };
   };
 
-  const { total: totalDays, business: businessDays } = dateRange?.from && dateRange?.to 
+  let { total: totalDays, business: baseBusinessDays } = dateRange?.from && dateRange?.to 
     ? calculateDays(dateRange.from, dateRange.to)
     : { total: 0, business: 0 };
+
+  const isStartWorking = dateRange?.from ? !isWeekend(dateRange.from) && !isCZHoliday(dateRange.from) : false;
+  const isEndWorking = dateRange?.to ? !isWeekend(dateRange.to) && !isCZHoliday(dateRange.to) : false;
+
+  // Auto-reset half days if dates change to non-working
+  useEffect(() => {
+      if (!isStartWorking && startHalfDay) setStartHalfDay(false);
+      if (!isEndWorking && endHalfDay) setEndHalfDay(false);
+  }, [dateRange, isStartWorking, isEndWorking]);
+
+  let businessDays = baseBusinessDays;
+  if (startHalfDay && businessDays > 0) {
+      businessDays -= 0.5;
+      totalDays = Math.max(0, totalDays - 0.5);
+  }
+  if (endHalfDay && businessDays > 0 && (!isSameDay(dateRange?.from!, dateRange?.to!) || !startHalfDay)) {
+      businessDays -= 0.5;
+      totalDays = Math.max(0, totalDays - 0.5);
+  }
 
   const isOverEntitlement = entitlement && businessDays > entitlement.remaining_days;
 
@@ -107,6 +129,8 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
             body: JSON.stringify({
                 start_date: format(dateRange.from, "yyyy-MM-dd"),
                 end_date: format(dateRange.to, "yyyy-MM-dd"),
+                start_half_day: startHalfDay,
+                end_half_day: endHalfDay,
                 note
             })
         });
@@ -120,6 +144,8 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
         onOpenChange(false);
         onSuccess();
         setDateRange(undefined);
+        setStartHalfDay(false);
+        setEndHalfDay(false);
         setNote("");
     } catch (err) {
         console.error(err);
@@ -214,14 +240,14 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
 
                     {/* Stats Section - Narrower & Aligned */}
                     <div className="w-full md:w-[200px] flex flex-col gap-4 mt-9">
-                         {/* Stats Cards */}
+                         {/* Stats & Toggles Container - Sticky */}
                         <div className="bg-muted/20 rounded-xl p-4 border border-muted/20 space-y-4 sticky top-0">
                             <div>
                                 <div className="flex items-center gap-2 mb-1">
                                     <CalendarDays className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("leaves.total_days_label")}</span>
                                 </div>
-                                <span className="text-3xl font-bold text-foreground">{totalDays}</span>
+                                <span className="text-3xl font-bold text-foreground">{totalDays.toLocaleString(i18n.language)}</span>
                             </div>
                             
                             <div className="h-px bg-border/50" />
@@ -231,11 +257,49 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
                                     <Briefcase className="h-4 w-4 text-primary" />
                                     <span className="text-xs font-semibold text-primary uppercase tracking-wider">{t("leaves.working_days_label")}</span>
                                 </div>
-                                <span className="text-3xl font-bold text-primary">{businessDays}</span>
+                                <span className="text-3xl font-bold text-primary">{businessDays.toLocaleString(i18n.language)}</span>
                             </div>
+
+                            {/* Half Day Toggles (Sidebar) */}
+                            {dateRange?.from && dateRange?.to && (
+                                <>
+                                    <div className="h-px bg-border/50" />
+                                    <div className="space-y-3 pt-2">
+                                        {isSameDay(dateRange.from, dateRange.to) ? (
+                                            <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg border border-muted/30">
+                                                <Switch 
+                                                    id="half-day" 
+                                                    checked={startHalfDay}
+                                                    disabled={!isStartWorking}
+                                                    onCheckedChange={(c) => {
+                                                        setStartHalfDay(c); 
+                                                        setEndHalfDay(false);
+                                                    }} 
+                                                />
+                                                <Label htmlFor="half-day" className="cursor-pointer text-sm font-medium">{t("leaves.half_day", "Half day (0.5)")}</Label>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg border border-muted/30">
+                                                    <Switch id="start-half" checked={startHalfDay} disabled={!isStartWorking} onCheckedChange={setStartHalfDay} />
+                                                    <Label htmlFor="start-half" className="cursor-pointer text-sm font-medium">{t("leaves.half_day_start", "Start half day")}</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg border border-muted/30">
+                                                    <Switch id="end-half" checked={endHalfDay} disabled={!isEndWorking} onCheckedChange={setEndHalfDay} />
+                                                    <Label htmlFor="end-half" className="cursor-pointer text-sm font-medium">{t("leaves.half_day_end", "End half day")}</Label>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
+
+
+
+
 
                 {/* Note Section - Full Width at Bottom */}
                 <div className="space-y-2 pt-2">
@@ -250,11 +314,12 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
             </div>
 
             {/* Sticky Footer with Shadow */}
-            <div className="p-6 bg-background shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.5)] mt-auto z-20 flex justify-end relative">
+            <div className="p-6 bg-background mt-auto z-50 flex justify-end relative">
+                <div className="absolute left-0 right-0 bottom-full h-10 bg-gradient-to-t from-background to-transparent pointer-events-none" />
                  <Button 
                     type="submit" 
                     size="lg"
-                    disabled={isLoading || !dateRange?.from || !dateRange?.to} 
+                    disabled={isLoading || !dateRange?.from || !dateRange?.to || businessDays <= 0} 
                     className="w-full sm:w-auto min-w-[200px] rounded-2xl font-bold h-12 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
                 >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

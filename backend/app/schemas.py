@@ -83,6 +83,8 @@ class LeaveRequestBase(BaseModel):
     start_date: date
     end_date: date
     note: Optional[str] = None
+    start_half_day: bool = False
+    end_half_day: bool = False
 
 class LeaveRequestCreate(LeaveRequestBase):
     pass
@@ -92,6 +94,8 @@ class LeaveRequestRead(LeaveRequestBase, ORMModel):
     user_id: UUID
     days_count: float
     status: LeaveStatus
+    start_half_day: bool
+    end_half_day: bool
     gcal_event_id: Optional[str] = None
     created_at: datetime
     

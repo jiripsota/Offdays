@@ -85,6 +85,8 @@ async def _create_request_internal(
     start_date: date, 
     end_date: date, 
     note: str, 
+    start_half_day: bool = False,
+    end_half_day: bool = False,
     send_email: bool = True
 ) -> LeaveRequest:
     from app.logic.workdays import is_weekend, is_holiday
@@ -138,18 +140,26 @@ async def _create_request_internal(
             if not is_weekend(curr) and not is_holiday(curr):
                 days_count += 1.0
         curr += timedelta(days=1)
+    
+    # Half-day Logic
+    if start_half_day:
+        # Only subtract if it was counted as a full day (business day & not approved)
+        if start_date not in approved_dates and not is_weekend(start_date) and not is_holiday(start_date):
+            days_count -= 0.5
+
+    if start_date != end_date and end_half_day:
+        if end_date not in approved_dates and not is_weekend(end_date) and not is_holiday(end_date):
+            days_count -= 0.5
         
     if days_count <= 0:
-        # If splitting, one part might have 0 days (e.g. weekends), so we shouldn't error out hard 
-        # unless it's the ONLY request. But for now, let's allow 0-day requests if they are part of a split? 
-        # Actually standard logic forbids 0 days. 
-        # If a split results in 0 working days (e.g. Jan 1-2 is weekend/holiday), it effectively shouldn't exist.
         raise HTTPException(status_code=400, detail="No new business days to request in this specific range.")
     
     new_request = LeaveRequest(
         user_id=current_user.id,
         start_date=start_date,
         end_date=end_date,
+        start_half_day=start_half_day,
+        end_half_day=end_half_day,
         days_count=days_count,
         note=note,
         status=LeaveStatus.PENDING
@@ -206,17 +216,25 @@ async def create_leave_request(
         
         req1 = None
         try:
-            req1 = await _create_request_internal(db, current_user, request.start_date, dec31, request.note)
+            # First part: keeps start_half_day, but end_half_day is False (unless logic requires it, but year end is not end of request)
+            req1 = await _create_request_internal(
+                db, current_user, request.start_date, dec31, request.note, 
+                start_half_day=request.start_half_day, 
+                end_half_day=False
+            )
         except HTTPException:
-            # It's possible one part has 0 business days (e.g. just weekends). 
-            # We should probably catch and ignore if the OTHER part is valid.
-            pass
+            pass 
 
         # Range 2: Jan 1 -> End
         jan1 = date(request.end_date.year, 1, 1)
         req2 = None
         try:
-            req2 = await _create_request_internal(db, current_user, jan1, request.end_date, request.note)
+            # Second part: start_half_day False, keeps end_half_day
+            req2 = await _create_request_internal(
+                db, current_user, jan1, request.end_date, request.note,
+                start_half_day=False,
+                end_half_day=request.end_half_day
+            )
         except HTTPException:
             pass
 
@@ -226,7 +244,11 @@ async def create_leave_request(
         # Return the first successful one for schema compliance, user will see both in dashboard
         return req1 if req1 else req2
     else:
-        return await _create_request_internal(db, current_user, request.start_date, request.end_date, request.note)
+        return await _create_request_internal(
+            db, current_user, request.start_date, request.end_date, request.note,
+            start_half_day=request.start_half_day,
+            end_half_day=request.end_half_day
+        )
 
 @router.delete("/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
 def cancel_pending_request(

@@ -174,6 +174,8 @@ class LeaveRequest(Base):
     
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    start_half_day: Mapped[bool] = mapped_column(Boolean, default=False)
+    end_half_day: Mapped[bool] = mapped_column(Boolean, default=False)
     days_count: Mapped[float] = mapped_column(Integer, nullable=False) # Business days deduction
     
     status: Mapped[LeaveStatus] = mapped_column(String(20), default=LeaveStatus.PENDING)

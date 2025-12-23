@@ -203,7 +203,10 @@
     "request_submitted": "Žádost odeslána",
     "request_submitted_desc": "Vaše žádost čeká na schválení.",
     "total_days": "Celkem dní (Rok)",
-    "remaining_days": "Zbývající dny"
+    "remaining_days": "Zbývající dny",
+    "half_day": "Půl dne (0.5)",
+    "half_day_start": "Začít půldnem",
+    "half_day_end": "Končit půldnem"
   },
   "status": {
     "approved": "Schváleno",

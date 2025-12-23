@@ -42,6 +42,7 @@ const fetchRequests = async () => {
 
 const getCzechDaysLabel = (count: number) => {
     if (count === 1) return "den";
+    if (count === 0.5) return "dne";
     if (count >= 2 && count <= 4) return "dny";
     return "dní";
 };
@@ -147,7 +148,7 @@ export function DashboardPage() {
              <div className="flex items-start justify-between z-10">
                  <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.remaining", "Remaining")}</h3>
-                    <div className="text-3xl font-bold text-primary">{entitlement?.remaining_days ?? 0}</div>
+                    <div className="text-3xl font-bold text-primary">{entitlement?.remaining_days?.toLocaleString(i18n.language) ?? 0}</div>
                  </div>
                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
                      <CalendarDays className="h-5 w-5" />
@@ -161,7 +162,7 @@ export function DashboardPage() {
              <div className="flex items-start justify-between z-10">
                  <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.accrued", "Accrued So Far")}</h3>
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{entitlement?.accrued_days ?? 0}</div>
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{entitlement?.accrued_days?.toLocaleString(i18n.language) ?? 0}</div>
                  </div>
                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
                      <PieChart className="h-5 w-5" />
@@ -176,7 +177,7 @@ export function DashboardPage() {
                  <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.used", "Used / Planned")}</h3>
                     <div className="text-3xl font-bold text-foreground">
-                        {entitlement ? (entitlement.total_days - entitlement.remaining_days) : 0}
+                        {entitlement ? (entitlement.total_days - entitlement.remaining_days).toLocaleString(i18n.language) : 0}
                     </div>
                  </div>
                  <div className="p-2 bg-muted rounded-lg text-foreground">
@@ -191,7 +192,7 @@ export function DashboardPage() {
              <div className="flex items-start justify-between z-10">
                  <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.total", "Full Allowance")}</h3>
-                    <div className="text-3xl font-bold text-foreground">{entitlement?.total_days ?? 0}</div>
+                    <div className="text-3xl font-bold text-foreground">{entitlement?.total_days?.toLocaleString(i18n.language) ?? 0}</div>
                  </div>
                  <div className="p-2 bg-muted rounded-lg text-foreground">
                      <Briefcase className="h-5 w-5" />
@@ -253,11 +254,11 @@ export function DashboardPage() {
                         <CardContent className="px-4 pb-4">
                              <div className="mb-2">
                                 <div className="text-lg font-bold text-foreground">
-                                    {format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale }) ? (
-                                        <span>{format(new Date(req.start_date), "d. MMM yyyy", { locale: dateLocale })}</span>
+                                    {format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale }) ? (
+                                        <span>{format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale })}</span>
                                     ) : (
                                         <span>
-                                            {format(new Date(req.start_date), "d. MMM", { locale: dateLocale })} - {format(new Date(req.end_date), "d. MMM yyyy", { locale: dateLocale })}
+                                            {format(new Date(req.start_date), "d. M.", { locale: dateLocale })} - {format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale })}
                                         </span>
                                     )}
                                 </div>
@@ -265,7 +266,7 @@ export function DashboardPage() {
 
                              <div className="flex items-center justify-between mt-4">
                                 <Badge variant="secondary" className="font-normal text-xs">
-                                    {req.days_count} {i18n.language === 'cs' ? getCzechDaysLabel(req.days_count) : t("common.days", "days")}
+                                    {req.days_count.toLocaleString(i18n.language)} {i18n.language === 'cs' ? getCzechDaysLabel(req.days_count) : t("common.days", "days")}
                                 </Badge>
                                 
                                 {req.note && (

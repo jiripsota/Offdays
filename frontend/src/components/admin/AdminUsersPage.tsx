@@ -182,6 +182,9 @@ export function AdminUsersPage() {
                 {t("admin.users.role")}
               </TableHead>
               <TableHead className="px-4 py-3 h-11 font-medium text-muted-foreground">
+                {t("admin.users.user_type")}
+              </TableHead>
+              <TableHead className="px-4 py-3 h-11 font-medium text-muted-foreground">
                 {t("admin.users.status")}
               </TableHead>
               <TableHead className="px-4 py-3 h-11 font-medium text-muted-foreground">
@@ -205,6 +208,7 @@ export function AdminUsersPage() {
                       </div>
                     </TableCell>
                     <TableCell className="px-4 py-3"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                    <TableCell className="px-4 py-3"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
                     <TableCell className="px-4 py-3"><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
                     <TableCell className="px-4 py-3"><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell className="px-4 py-3 text-right"><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
@@ -216,7 +220,7 @@ export function AdminUsersPage() {
             {error && (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="px-4 py-8 text-center text-destructive"
                 >
                   {t("admin.users.failed_load", { error: error.message })}
@@ -230,7 +234,7 @@ export function AdminUsersPage() {
               filteredUsers.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="px-4 py-8 text-center text-muted-foreground"
                   >
                     {t("admin.users.no_users_found")}
@@ -279,6 +283,18 @@ export function AdminUsersPage() {
                       ) : (
                         <Badge variant="outline">
                           {t("admin.users.user")}
+                        </Badge>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="px-4 py-3">
+                      {user.user_type === "contractor" ? (
+                        <Badge variant="outline" className="bg-orange-50/50 text-orange-700 border-orange-200">
+                          {t("admin.users.type_contractor")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-200">
+                          {t("admin.users.type_employee")}
                         </Badge>
                       )}
                     </TableCell>

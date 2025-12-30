@@ -55,7 +55,8 @@ def create_user(
         email=payload.email,
         full_name=payload.full_name,
         is_admin=payload.is_admin,
-        is_active=payload.is_active
+        is_active=payload.is_active,
+        user_type=payload.user_type
     )
     db.add(new_user)
     db.commit()
@@ -207,6 +208,9 @@ def update_user(
         if supervisor.id == user.id:
             raise HTTPException(status_code=400, detail="User cannot be their own supervisor")
         user.supervisor_id = payload.supervisor_id
+
+    if payload.user_type is not None:
+        user.user_type = payload.user_type
 
     db.commit()
     db.refresh(user)

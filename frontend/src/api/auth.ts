@@ -7,6 +7,7 @@ export interface CurrentUser {
   picture?: string | null;
   is_admin: boolean;
   is_active: boolean;
+  user_type: "employee" | "contractor";
   created_at: string;
 }
 

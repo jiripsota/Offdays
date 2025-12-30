@@ -25,6 +25,7 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
   const queryClient = useQueryClient();
   
   const [supervisorId, setSupervisorId] = useState<string>("none");
+  const [userType, setUserType] = useState<"employee" | "contractor">("employee");
   const [totalDays, setTotalDays] = useState<string>("20");
   const [remainingDays, setRemainingDays] = useState<string>("20");
 
@@ -45,6 +46,7 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
   useEffect(() => {
     if (user) {
         setSupervisorId(user.supervisor_id || "none");
+        setUserType(user.user_type);
     }
   }, [user]);
 
@@ -59,17 +61,24 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
     mutationFn: async () => {
         if (!user) return;
         
-        // Update Supervisor
+        // Update Supervisor & User Type
         const supId = supervisorId === "none" ? null : supervisorId;
-        if (supId !== user.supervisor_id) {
-            await usersApi.update(user.id, { supervisor_id: supId });
+        const needsUserUpdate = supId !== user.supervisor_id || userType !== user.user_type;
+        
+        if (needsUserUpdate) {
+            await usersApi.update(user.id, { 
+                supervisor_id: supId,
+                user_type: userType
+            });
         }
         
-        // Update Entitlement
-        await leavesApi.updateAdminEntitlement(user.id, {
-            total_days: parseFloat(totalDays),
-            remaining_days: parseFloat(remainingDays)
-        });
+        // Update Entitlement (only for employees)
+        if (userType === "employee") {
+            await leavesApi.updateAdminEntitlement(user.id, {
+                total_days: parseFloat(totalDays),
+                remaining_days: parseFloat(remainingDays)
+            });
+        }
     },
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
@@ -112,6 +121,19 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
         <div className="space-y-6 px-6 py-6 flex-1 overflow-y-auto min-h-0">
             
             <div className="space-y-2">
+                <Label>{t("admin.users.user_type", "Type")}</Label>
+                <Select value={userType} onValueChange={(val: "employee" | "contractor") => setUserType(val)}>
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="employee">{t("admin.users.type_employee")}</SelectItem>
+                        <SelectItem value="contractor">{t("admin.users.type_contractor")}</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-2">
                 <Label>{t("admin.users.supervisor", "Supervisor")}</Label>
                 <Select value={supervisorId} onValueChange={setSupervisorId}>
                     <SelectTrigger>
@@ -128,29 +150,32 @@ export function UserEditSheet({ user, open, onOpenChange }: UserEditSheetProps) 
                 </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label>{t("leaves.total_days", "Total Days (Year)")}</Label>
-                    <Input 
-                        type="number" 
-                        value={totalDays}
-                        onChange={(e) => setTotalDays(e.target.value)}
-                    />
+            {userType === "employee" && (
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label>{t("leaves.total_days", "Total Days (Year)")}</Label>
+                        <Input 
+                            type="number" 
+                            value={totalDays}
+                            onChange={(e) => setTotalDays(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>{t("leaves.remaining_days", "Remaining Days")}</Label>
+                        <Input 
+                            type="number" 
+                            value={remainingDays}
+                            onChange={(e) => setRemainingDays(e.target.value)}
+                        />
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <Label>{t("leaves.remaining_days", "Remaining Days")}</Label>
-                    <Input 
-                        type="number" 
-                        value={remainingDays}
-                        onChange={(e) => setRemainingDays(e.target.value)}
-                    />
-                </div>
-            </div>
+            )}
         </div>
         
-        {/* Sticky Footer */}
-        <div className="p-6 border-t bg-background shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] mt-auto z-20">
-            <Button onClick={() => updateMutation.mutate()} disabled={isLoading} className="w-full">
+        {/* Sticky Footer with Shadow */}
+        <div className="p-6 bg-background mt-auto z-20 relative flex justify-end">
+            <div className="absolute left-0 right-0 bottom-full h-10 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+            <Button onClick={() => updateMutation.mutate()} disabled={isLoading} className="w-full sm:w-auto min-w-[150px] rounded-2xl font-bold h-12 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all">
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {t("common.save", "Save Changes")}
             </Button>

@@ -85,14 +85,14 @@ export function ApprovalsPage() {
                     <CheckSquare className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{t("leaves.approvals", "Approvals")}</h1>
-                    <p className="text-muted-foreground">{t("leaves.approvals_desc", "Manage leave requests from your team.")}</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t("leaves.approvals_title", "Approvals")}</h1>
+                    <p className="text-muted-foreground">{t("leaves.approvals_subtitle", "Manage leave requests and absence notifications from your team.")}</p>
                 </div>
             </div>
 
             <Card>
                 <CardHeader>
-                     <CardTitle>{t("leaves.pending_requests", "Pending Requests")}</CardTitle>
+                     <CardTitle>{t("leaves.pending_requests", "Pending Requests / Notifications")}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                     {requests?.length === 0 ? (
@@ -104,6 +104,7 @@ export function ApprovalsPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>{t("admin.users.name", "Name")}</TableHead>
+                                    <TableHead>{t("admin.users.user_type", "Type")}</TableHead>
                                     <TableHead>{t("leaves.date", "Date")}</TableHead>
                                     <TableHead className="w-[100px]">{t("leaves.days", "Days")}</TableHead>
                                     <TableHead>{t("leaves.note", "Note")}</TableHead>
@@ -130,6 +131,17 @@ export function ApprovalsPage() {
                                                     )}
                                                 </div>
                                             </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {req.user?.user_type === "contractor" ? (
+                                                <Badge variant="outline" className="bg-orange-50/50 text-orange-700 border-orange-200">
+                                                    {t("admin.users.type_contractor", "Contractor")}
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-200">
+                                                    {t("admin.users.type_employee", "Employee")}
+                                                </Badge>
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2 text-sm text-foreground/80">
@@ -161,11 +173,11 @@ export function ApprovalsPage() {
                                                                 disabled={!!actionLoading}
                                                                 onClick={() => handleAction(req.id, "reject")}
                                                             >
-                                                                {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Ban className="h-4 w-4"/>}
+                                                                {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <X className="h-4 w-4"/>}
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            {req.status === "cancel_pending" ? t("leaves.tooltips.deny_cancel") : t("leaves.tooltips.reject")}
+                                                            {t("leaves.reject", "Reject")}
                                                         </TooltipContent>
                                                     </Tooltip>
 
@@ -178,11 +190,11 @@ export function ApprovalsPage() {
                                                                 disabled={!!actionLoading}
                                                                 onClick={() => handleAction(req.id, "approve")}
                                                             >
-                                                                {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <CheckCircle className="h-4 w-4"/>}
+                                                                {actionLoading === req.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Check className="h-4 w-4"/>}
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            {req.status === "cancel_pending" ? t("leaves.tooltips.approve_cancel") : t("leaves.tooltips.approve")}
+                                                            {t("leaves.approve", "Approve")}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>

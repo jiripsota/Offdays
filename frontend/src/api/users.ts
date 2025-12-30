@@ -6,6 +6,7 @@ export interface User {
   full_name?: string | null;
   is_admin: boolean;
   is_active: boolean;
+  user_type: "employee" | "contractor";
   created_at: string;
   picture?: string | null;
   last_login?: string | null;
@@ -16,6 +17,7 @@ export interface UserUpdatePayload {
   full_name?: string | null;
   is_admin?: boolean;
   is_active?: boolean;
+  user_type?: "employee" | "contractor";
   supervisor_id?: string | null;
 }
 
@@ -23,6 +25,7 @@ export interface UserCreatePayload {
   email: string;
   full_name?: string | null;
   is_admin?: boolean;
+  user_type?: "employee" | "contractor";
 }
 
 export const usersApi = {

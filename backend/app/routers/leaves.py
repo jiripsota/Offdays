@@ -10,7 +10,8 @@ from app.models import User, LeaveRequest, LeaveEntitlement, LeaveStatus, OAuthA
 from app.schemas import (
     LeaveRequestCreate, 
     LeaveRequestRead, 
-    LeaveEntitlementRead
+    LeaveEntitlementRead,
+    LeaveEntitlementUpdate
 )
 from app.auth_deps import get_current_user
 from app.logic.workdays import calculate_business_days
@@ -501,7 +502,7 @@ async def reject_request(
 @router.put("/admin/{user_id}/entitlement", response_model=LeaveEntitlementRead)
 def update_user_entitlement(
     user_id: UUID,
-    update: LeaveEntitlementRead,
+    update: LeaveEntitlementUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -510,11 +511,18 @@ def update_user_entitlement(
     current_year = datetime.utcnow().year
     entitlement = db.scalar(select(LeaveEntitlement).where(LeaveEntitlement.user_id == user_id, LeaveEntitlement.year == current_year))
     if not entitlement:
-        entitlement = LeaveEntitlement(user_id=user_id, year=current_year, total_days=update.total_days, remaining_days=update.remaining_days)
+        entitlement = LeaveEntitlement(
+            user_id=user_id, 
+            year=current_year, 
+            total_days=update.total_days if update.total_days is not None else 20.0, 
+            remaining_days=update.remaining_days if update.remaining_days is not None else 20.0
+        )
         db.add(entitlement)
     else:
-        entitlement.total_days = update.total_days
-        entitlement.remaining_days = update.remaining_days
+        if update.total_days is not None:
+            entitlement.total_days = update.total_days
+        if update.remaining_days is not None:
+            entitlement.remaining_days = update.remaining_days
     db.commit()
     db.refresh(entitlement)
     return entitlement

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { authApi, type CurrentUser } from "../../api/auth";
 import { format, differenceInBusinessDays, addDays, isWeekend, eachDayOfInterval, isSameDay } from "date-fns";
 import { cs } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
@@ -51,6 +52,12 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, 
   
   // Date-fns locale
   const dateLocale = i18n.language === 'cs' ? cs : undefined;
+
+  // Load current user for user_type
+  const { data: currentUser } = useQuery<CurrentUser, Error>({
+    queryKey: ["currentUser"],
+    queryFn: () => authApi.me(),
+  });
   
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [note, setNote] = useState("");
@@ -115,7 +122,7 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, 
   // Use passed remainingDays or fallback to entitlement logic (though entitlement might be stale if pending not counted)
   // But typically passed remainingDays is the accurate one.
   const limit = remainingDays ?? entitlement?.remaining_days;
-  const isOverEntitlement = limit !== undefined && businessDays > limit;
+  const isOverEntitlement = currentUser?.user_type !== "contractor" && limit !== undefined && businessDays > limit;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,8 +148,12 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, 
         if (!res.ok) throw new Error("Failed to submit request");
         
         toast({
-            title: t("leaves.request_submitted", "Request submitted"),
-            description: t("leaves.request_submitted_desc", "Your request is pending approval."),
+            title: currentUser?.user_type === "contractor"
+                ? t("leaves.notice_submitted", "Notification sent")
+                : t("leaves.request_submitted", "Request submitted"),
+            description: currentUser?.user_type === "contractor"
+                ? t("leaves.notice_submitted_desc", "Your absence notification has been recorded.")
+                : t("leaves.request_submitted_desc", "Your request is pending approval."),
         });
         onOpenChange(false);
         onSuccess();
@@ -174,10 +185,14 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, 
           </div>
           <div className="flex-1 min-w-0">
             <SheetTitle className="text-lg font-bold truncate leading-tight">
-              {t("leaves.new_request", "New Leave Request")}
+              {currentUser?.user_type === "contractor" 
+                ? t("leaves.new_request_contractor", "New Absence Notification") 
+                : t("leaves.new_request", "New Leave Request")}
             </SheetTitle>
             <p className="text-xs text-muted-foreground truncate opacity-70">
-              {t("leaves.new_request_desc", "Select the dates for your leave. Your supervisor will review the request.")}
+              {currentUser?.user_type === "contractor" 
+                ? t("leaves.new_request_desc_contractor", "Select the dates for your absence.") 
+                : t("leaves.new_request_desc", "Select the dates for your leave. Your supervisor will review the request.")}
             </p>
           </div>
         </SheetHeader>
@@ -309,7 +324,9 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, 
                     <Textarea 
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        placeholder={t("leaves.note_placeholder", "e.g. Vacation in Italy")}
+                        placeholder={currentUser?.user_type === "contractor" 
+                            ? t("leaves.note_placeholder_contractor", "e.g. Workshop in London")
+                            : t("leaves.note_placeholder", "e.g. Vacation in Italy")}
                         className="min-h-[100px] resize-none focus-visible:ring-offset-0"
                     />
                 </div>
@@ -325,7 +342,9 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, 
                     className="w-full sm:w-auto min-w-[200px] rounded-2xl font-bold h-12 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
                 >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {t("common.submit", "Submit Request")}
+                    {currentUser?.user_type === "contractor" 
+                        ? t("leaves.submit_notification", "Submit Notification")
+                        : t("common.submit", "Submit Request")}
                 </Button>
             </div>
         </form>

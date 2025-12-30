@@ -57,6 +57,12 @@ export function DashboardPage() {
   const { formatDateRange } = useDateFormatter();
 
   const queryClient = useQueryClient();
+  
+  // Load current user for user_type and admin status
+  const { data: currentUser } = useQuery<CurrentUser, Error>({
+    queryKey: ["currentUser"],
+    queryFn: () => authApi.me(),
+  });
 
   // Load ALL requests to determine if we have future ones
   const { data: allRequests, isLoading: loadingRequests } = useQuery({
@@ -145,6 +151,18 @@ export function DashboardPage() {
     return <div className="flex h-full items-center justify-center"><Spinner /></div>;
   }
 
+  // Calculate used this month (for contractor subtext)
+  const usedThisMonth = displayedRequests?.reduce((sum: number, req: any) => {
+      const start = new Date(req.start_date);
+      const now = new Date();
+      if (['approved', 'pending', 'cancel_pending'].includes(req.status) && 
+          start.getMonth() === now.getMonth() &&
+          start.getFullYear() === now.getFullYear()) {
+          return sum + req.days_count;
+      }
+      return sum;
+  }, 0) || 0;
+
   return (
     <div className="flex-1 w-full p-6 space-y-8">
       
@@ -156,7 +174,11 @@ export function DashboardPage() {
             </div>
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.title", "My Dashboard")} <span className="text-muted-foreground ml-2 font-light">{selectedYear}</span></h1>
-                <p className="text-muted-foreground">{t("dashboard.subtitle", "Overview of your leave and requests.")}</p>
+                <p className="text-muted-foreground">
+                    {currentUser?.user_type === "contractor" 
+                        ? t("dashboard.subtitle_contractor", "Overview of your absence notifications.") 
+                        : t("dashboard.subtitle", "Overview of your leave and requests.")}
+                </p>
             </div>
         </div>
         
@@ -184,83 +206,128 @@ export function DashboardPage() {
             
             <Button onClick={() => setShowRequestSheet(true)} size="lg" className="shadow-sm">
                 <Plus className="mr-2 h-4 w-4" />
-                {t("leaves.new_request_btn", "Request Time Off")}
+                {currentUser?.user_type === "contractor" 
+                    ? t("leaves.new_request_btn_contractor", "Report Absence") 
+                    : t("leaves.new_request_btn", "Request Time Off")}
             </Button>
         </div>
       </div>
 
-      {/* Stats Cards - New Style */}
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group">
-             <div className="flex items-start justify-between z-10">
-                 <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.remaining", "Remaining")}</h3>
-                    <div className="text-3xl font-bold text-primary">{remainingDaysCalc.toLocaleString(i18n.language)}</div>
-                 </div>
-                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                     <CalendarDays className="h-5 w-5" />
-                 </div>
-             </div>
-             <p className="text-xs text-muted-foreground mt-4 z-10 relative">{t("leaves.remaining_desc", "Days available this year")}</p>
-             <div className="absolute -right-4 -bottom-4 bg-primary/5 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
-        </div>
-
-        {isFutureYear ? (
-           <div className="bg-card/50 rounded-xl border border-dashed shadow-sm p-4 flex flex-col items-center justify-center text-center text-muted-foreground opacity-60">
-                <span className="text-xs font-medium">{t("leaves.accrued_not_started", "Accrual starts Jan 1")}</span>
-           </div>
-        ) : (
-        <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group">
-             <div className="flex items-start justify-between z-10">
-                 <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.accrued", "Accrued So Far")}</h3>
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{entitlement?.accrued_days?.toLocaleString(i18n.language) ?? 0}</div>
-                 </div>
-                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
-                     <PieChart className="h-5 w-5" />
-                 </div>
-             </div>
-             <p className="text-xs text-muted-foreground mt-4 z-10 relative">{t("leaves.accrued_desc", "Based on days worked")}</p>
-             <div className="absolute -right-4 -bottom-4 bg-blue-50 dark:bg-blue-900/10 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
-        </div>
-        )}
-
-        <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group">
-             <div className="flex items-start justify-between z-10">
-                 <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.used", "Used / Planned")}</h3>
+        
+        {/* Box 1: Used / Planned (with remaining for employee) */}
+        <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group h-full">
+            <div className="flex items-start justify-between z-10">
+                <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                        {currentUser?.user_type === "contractor" 
+                            ? t("leaves.used_contractor", "Absence / Planned") 
+                            : t("leaves.used", "Used / Planned")}
+                    </h3>
                     <div className="text-3xl font-bold text-foreground">
                         {usedOrPlannedDays.toLocaleString(i18n.language)}
                     </div>
-                 </div>
-                 <div className="p-2 bg-muted rounded-lg text-foreground">
-                     <CheckSquare className="h-5 w-5" />
-                 </div>
-             </div>
-             <p className="text-xs text-muted-foreground mt-4 z-10 relative">{t("leaves.used_desc", "Days requested or taken")}</p>
-             <div className="absolute -right-4 -bottom-4 bg-muted/50 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
+                </div>
+                <div className="p-2 bg-muted rounded-lg text-foreground">
+                    <CheckSquare className="h-5 w-5" />
+                </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-4 z-10 relative">
+                {currentUser?.user_type === "contractor" 
+                    ? (selectedYear === currentYear 
+                        ? t("leaves.used_this_month_contractor", { count: usedThisMonth.toLocaleString(i18n.language), unit: i18n.language === 'cs' ? getCzechDaysLabel(usedThisMonth) : t("common.days") })
+                        : "\u00A0")
+                    : t("leaves.used_remaining_desc", { remaining: remainingDaysCalc.toLocaleString(i18n.language), unit: i18n.language === 'cs' ? getCzechDaysLabel(remainingDaysCalc) : t("common.days") })}
+            </p>
+            <div className="absolute -right-4 -bottom-4 bg-muted/50 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
         </div>
 
-        <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group">
-             <div className="flex items-start justify-between z-10">
-                 <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.total", "Full Allowance")}</h3>
-                    <div className="text-3xl font-bold text-foreground">{entitlement?.total_days?.toLocaleString(i18n.language) ?? 0}</div>
-                 </div>
-                 <div className="p-2 bg-muted rounded-lg text-foreground">
-                     <Briefcase className="h-5 w-5" />
-                 </div>
-             </div>
-             <p className="text-xs text-muted-foreground mt-4 z-10 relative">{t("leaves.total_desc", "Contractual entitlement")}</p>
-             <div className="absolute -right-4 -bottom-4 bg-muted/50 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
+        {/* Box 2: Next Absence / Leave (Universal) */}
+        <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group h-full">
+            <div className="flex items-start justify-between z-10">
+                <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                        {currentUser?.user_type === "contractor" 
+                            ? t("leaves.next_absence") 
+                            : t("leaves.next_leave")}
+                    </h3>
+                    <div className="text-lg font-bold">
+                        {(() => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const next = allRequests
+                                ?.filter((r: any) => ["approved", "pending"].includes(r.status))
+                                .filter((r: any) => new Date(r.start_date) >= today)
+                                .sort((a: any, b: any) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())[0];
+                            
+                            if (!next) return t("common.none", "None");
+                            return formatDateRange(next.start_date, next.end_date);
+                        })()}
+                    </div>
+                </div>
+                <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                    <Clock className="h-5 w-5" />
+                </div>
+            </div>
+            <div className="absolute -right-4 -bottom-4 bg-emerald-50/50 dark:bg-emerald-900/10 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
         </div>
+
+        {/* Box 3: Pending Confirmation (Universal) */}
+        <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group h-full">
+            <div className="flex items-start justify-between z-10">
+                <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                        {currentUser?.user_type === "contractor" 
+                            ? t("leaves.pending_notifications") 
+                            : t("leaves.pending_requests")}
+                    </h3>
+                    <div className="text-3xl font-bold">
+                        {allRequests?.filter((r: any) => r.status === "pending").length || 0}
+                    </div>
+                </div>
+                <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400">
+                    <Clock className="h-5 w-5" />
+                </div>
+            </div>
+            <div className="absolute -right-4 -bottom-4 bg-orange-50/50 dark:bg-orange-900/10 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
+        </div>
+
+        {/* Box 4: Accrued / Contractual Allowance (Employee Only) */}
+        {currentUser?.user_type !== "contractor" ? (
+            <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group h-full">
+                <div className="flex items-start justify-between z-10">
+                    <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.accrued_total")}</h3>
+                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                            {entitlement?.accrued_days?.toLocaleString(i18n.language) ?? 0}
+                            <span className="text-muted-foreground/40 font-light mx-2">/</span>
+                            <span className="text-foreground">{entitlement?.total_days?.toLocaleString(i18n.language) ?? 0}</span>
+                        </div>
+                    </div>
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                        <PieChart className="h-5 w-5" />
+                    </div>
+                </div>
+                <div className="absolute -right-4 -bottom-4 bg-blue-50 dark:bg-blue-900/10 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
+            </div>
+        ) : (
+            <div className="hidden md:block" /> // Empty 4th slot to keep grid consistent
+        )}
       </div>
 
       {/* Recent Requests - Grid Layout */}
       <div>
         <div className="mb-4">
-             <h2 className="text-xl font-bold tracking-tight">{t("leaves.recent_requests", "Recent Requests")}</h2>
-             <p className="text-muted-foreground font-medium text-sm">{t("leaves.recent_requests_desc", "History of your time off requests.")}</p>
+             <h2 className="text-xl font-bold tracking-tight">
+                {currentUser?.user_type === "contractor" 
+                    ? t("leaves.recent_requests_contractor", "Recent Notifications") 
+                    : t("leaves.recent_requests", "Recent Requests")}
+             </h2>
+             <p className="text-muted-foreground font-medium text-sm">
+                {currentUser?.user_type === "contractor" 
+                    ? t("leaves.recent_requests_desc_contractor", "History of your absence notifications.") 
+                    : t("leaves.recent_requests_desc", "History of your time off requests.")}
+             </p>
         </div>
         
         {displayedRequests?.length === 0 ? (
@@ -292,7 +359,14 @@ export function DashboardPage() {
                                     size="icon" 
                                     className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                     disabled={!!isActionLoading}
-                                    onClick={() => handleActionClick(req.id, "cancel-request")}
+                                    onClick={() => {
+                                        handleActionClick(req.id, "cancel-request");
+                                        toast({
+                                            title: currentUser?.user_type === "contractor"
+                                                ? t("leaves.cancel_notice_success", "Cancellation notification sent")
+                                                : t("leaves.cancel_request_success", "Cancellation requested successfully"),
+                                        });
+                                    }}
                                     title={t("leaves.request_cancel", "Request Cancellation")}
                                 >
                                     {isActionLoading === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}

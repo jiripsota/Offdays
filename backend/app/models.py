@@ -36,6 +36,10 @@ class Tenant(Base):
     
     subscription: Mapped["Subscription"] = relationship("Subscription", back_populates="tenant", uselist=False)
 
+class UserType(str, Enum):
+    EMPLOYEE = "employee"
+    CONTRACTOR = "contractor"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -47,6 +51,7 @@ class User(Base):
     picture: Mapped[str | None] = mapped_column(String(1024))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    user_type: Mapped[UserType] = mapped_column(String(20), default=UserType.EMPLOYEE)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

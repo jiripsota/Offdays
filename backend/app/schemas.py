@@ -12,6 +12,11 @@ class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserType(str, Enum):
+    EMPLOYEE = "employee"
+    CONTRACTOR = "contractor"
+
+
 # --- Tenants & Storage ---
 
 class TenantBase(BaseModel):
@@ -34,6 +39,7 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     is_admin: bool = False
     is_active: bool = True
+    user_type: UserType = UserType.EMPLOYEE
 
 class UserCreate(UserBase):
     pass
@@ -48,6 +54,7 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     is_admin: Optional[bool] = None
     is_active: Optional[bool] = None
+    user_type: Optional[UserType] = None
     supervisor_id: Optional[UUID] = None
 
 # --- Billing (Kept simplified placeholders if needed by other parts, or assume kept from cleanup) --

@@ -12,6 +12,6 @@ export interface CurrentUser {
 
 export const authApi = {
   me: () => apiClient.get<CurrentUser>("/auth/me"),
-  getLoginUrl: () => apiClient.get<{ login_url: string }>("/auth/login"),
+  getLoginUrl: (forceConsent?: boolean) => apiClient.get<{ login_url: string }>(`/auth/login${forceConsent ? "?force_consent=true" : ""}`),
   logout: () => apiClient.post<{ detail: string }>("/auth/logout")
 };

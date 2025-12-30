@@ -7,8 +7,7 @@ import { Progress } from "../ui/progress";
 import { Badge } from "../ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { CreditCard, AlertCircle, RefreshCw } from "lucide-react";
-import { format } from "date-fns";
-import { cs, enUS } from "date-fns/locale";
+import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { Separator } from "../ui/separator";
 import { Spinner } from "../ui/spinner";
 import { Skeleton } from "../ui/skeleton";
@@ -48,7 +47,7 @@ export function AdminSubscriptionPage() {
   };
 
   // Determine locale for date-fns
-  const dateLocale = i18n.language === "cs" ? cs : enUS;
+  const { formatDate } = useDateFormatter();
 
   // Derived values (safe to calculate only if status exists)
   const usagePercent = status && status.usage.limit > 0 
@@ -154,7 +153,7 @@ export function AdminSubscriptionPage() {
                         
                     <div className="text-sm text-muted-foreground">
                         {status!.trial_ends_at && (
-                            <div>{t("billing.trial_ends", { date: format(new Date(status!.trial_ends_at), "PPP", { locale: dateLocale }) })}</div>
+                            <div>{t("billing.trial_ends", { date: formatDate(status!.trial_ends_at) })}</div>
                         )}
                         {status!.plan?.cycle && !status!.trial_ends_at && (
                             <div className="capitalize">{status!.plan.cycle} {t("billing.cycle_billing")}</div>

@@ -65,16 +65,21 @@ async def get_google_userinfo_and_tokens(code: str) -> dict:
 
 @router.get("/login")
 @limiter.limit("10/minute")
-def login(request: Request):
+def login(request: Request, force_consent: bool = False):
     # Build redirect URL to Google's OAuth2 consent screen
     google_auth_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
+    
+    # Default prompt is just select_account (no consent screen every time)
+    # If force_consent is True, we ask for consent (to get refresh_token)
+    prompt_value = "select_account consent" if force_consent else "select_account"
+    
     params = {
         "client_id": settings.google_client_id,
         "redirect_uri": settings.google_redirect_uri,
         "response_type": "code",
         "scope": "openid email profile https://www.googleapis.com/auth/directory.readonly",
         "access_type": "offline",
-        "prompt": "select_account consent",
+        "prompt": prompt_value,
     }
     from urllib.parse import urlencode
 
@@ -268,6 +273,16 @@ async def callback(
     if tokens.get("expires_in"):
         from time import time
         oauth.expires_at = int(time()) + tokens["expires_in"]
+        
+    # Check if we have a refresh token (either new or existing)
+    # If not, we MUST fail and ask for consent, because we need it for directory sync.
+    if not oauth.refresh_token:
+         # No refresh token available. We must redirect back with a special error
+         # that tells frontend to force 'prompt=consent'.
+         return RedirectResponse(
+            url=f"{settings.frontend_url.rstrip('/')}/login?error=consent_required",
+            status_code=303
+        )
 
     # Update picture if we have one
     if picture_url:

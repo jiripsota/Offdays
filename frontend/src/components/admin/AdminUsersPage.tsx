@@ -122,7 +122,7 @@ export function AdminUsersPage() {
           </div>
           <TooltipProvider>
             {(() => {
-              const isLimitReached = billingStatus && billingStatus.usage.limit > 0 && 
+              const isLimitReached = !!billingStatus && billingStatus.usage.limit > 0 && 
                                     billingStatus.usage.users >= billingStatus.usage.hard_limit;
               
               return (
@@ -372,7 +372,7 @@ export function AdminUsersPage() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               {(() => {
-                                const isLimitReached = billingStatus && billingStatus.usage.limit > 0 && 
+                                const isLimitReached = !!billingStatus && billingStatus.usage.limit > 0 && 
                                                       billingStatus.usage.users >= billingStatus.usage.hard_limit;
                                 const isDeactivating = user.is_active;
                                 const isDisabled = isSelf || (!isDeactivating && isLimitReached);
@@ -420,7 +420,7 @@ export function AdminUsersPage() {
                               {isSelf
                                 ? t("admin.users.tooltips.cannot_deactivate_self")
                                 : (() => {
-                                    const isLimitReached = billingStatus && billingStatus.usage.limit > 0 && 
+                                    const isLimitReached = !!billingStatus && billingStatus.usage.limit > 0 && 
                                                           billingStatus.usage.users >= billingStatus.usage.hard_limit;
                                     
                                     if (!user.is_active && isLimitReached) {

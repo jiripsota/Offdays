@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
-import { cs, enUS } from "date-fns/locale";
+import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { Plus, LayoutDashboard, Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Loader2, Briefcase, CalendarDays, PieChart, CheckSquare, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,9 +21,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const fetchEntitlement = async () => {
+const fetchEntitlement = async (year: number) => {
   const token = localStorage.getItem("token");
-  const res = await fetch("/api/leaves/me/entitlement", {
+  const res = await fetch(`/api/leaves/me/entitlement?year=${year}`, {
      headers: { Authorization: `Bearer ${token}` }
   });
   if (!res.ok) throw new Error("Failed");
@@ -53,25 +52,49 @@ export function DashboardPage() {
   const [showRequestSheet, setShowRequestSheet] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{id: string, action: "delete" | "cancel-request"} | null>(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const dateLocale = i18n.language === 'cs' ? cs : enUS;
+  const { formatDateRange } = useDateFormatter();
 
   const queryClient = useQueryClient();
 
-  const { data: entitlement, isLoading: loadingEntitlement } = useQuery({
-    queryKey: ["entitlement"],
-    queryFn: fetchEntitlement
-  });
-
-  const { data: requests, isLoading: loadingRequests } = useQuery({
+  // Load ALL requests to determine if we have future ones
+  const { data: allRequests, isLoading: loadingRequests } = useQuery({
     queryKey: ["my-requests"],
     queryFn: fetchRequests
+  });
+
+  const { data: entitlement, isLoading: loadingEntitlement } = useQuery({
+    queryKey: ["entitlement", selectedYear],
+    queryFn: () => fetchEntitlement(selectedYear)
   });
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["entitlement"] });
     queryClient.invalidateQueries({ queryKey: ["my-requests"] });
   };
+
+  const currentYear = new Date().getFullYear();
+  const nextYear = currentYear + 1;
+  const isFutureYear = selectedYear > currentYear;
+
+  // Filter requests for display
+  const displayedRequests = allRequests?.filter((req: any) => new Date(req.start_date).getFullYear() === selectedYear);
+  
+  // Check if we have requests for next year
+  const hasNextYearRequests = allRequests?.some((req: any) => new Date(req.start_date).getFullYear() === nextYear);
+
+  // Calculate statistics from displayed requests
+  const usedOrPlannedDays = displayedRequests?.reduce((sum: number, req: any) => {
+      // Count Approved, Pending, Cancel Pending
+      if (['approved', 'pending', 'cancel_pending'].includes(req.status)) {
+          return sum + req.days_count;
+      }
+      return sum;
+  }, 0) || 0;
+
+  const totalDays = entitlement?.total_days || 20; // Fallback or use entitlement total
+  const remainingDaysCalc = totalDays - usedOrPlannedDays;
 
   const executeAction = async (requestId: string, action: "delete" | "cancel-request") => {
       setIsActionLoading(requestId);
@@ -132,14 +155,38 @@ export function DashboardPage() {
                 <LayoutDashboard className="h-8 w-8 text-primary" />
             </div>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.title", "My Dashboard")}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.title", "My Dashboard")} <span className="text-muted-foreground ml-2 font-light">{selectedYear}</span></h1>
                 <p className="text-muted-foreground">{t("dashboard.subtitle", "Overview of your leave and requests.")}</p>
             </div>
         </div>
-        <Button onClick={() => setShowRequestSheet(true)} size="lg" className="shadow-sm">
-            <Plus className="mr-2 h-4 w-4" />
-            {t("leaves.new_request_btn", "Request Time Off")}
-        </Button>
+        
+        <div className="flex items-center gap-2">
+            {hasNextYearRequests && (
+                <div className="flex items-center bg-muted/30 p-1 rounded-lg border border-muted/30">
+                     <Button 
+                        variant={selectedYear === currentYear ? "default" : "ghost"} 
+                        size="sm"
+                        onClick={() => setSelectedYear(currentYear)}
+                        className="text-xs h-7"
+                     >
+                        {currentYear}
+                     </Button>
+                     <Button 
+                        variant={selectedYear === nextYear ? "default" : "ghost"} 
+                        size="sm" 
+                        onClick={() => setSelectedYear(nextYear)}
+                        className="text-xs h-7"
+                     >
+                        {nextYear}
+                     </Button>
+                </div>
+            )}
+            
+            <Button onClick={() => setShowRequestSheet(true)} size="lg" className="shadow-sm">
+                <Plus className="mr-2 h-4 w-4" />
+                {t("leaves.new_request_btn", "Request Time Off")}
+            </Button>
+        </div>
       </div>
 
       {/* Stats Cards - New Style */}
@@ -148,7 +195,7 @@ export function DashboardPage() {
              <div className="flex items-start justify-between z-10">
                  <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.remaining", "Remaining")}</h3>
-                    <div className="text-3xl font-bold text-primary">{entitlement?.remaining_days?.toLocaleString(i18n.language) ?? 0}</div>
+                    <div className="text-3xl font-bold text-primary">{remainingDaysCalc.toLocaleString(i18n.language)}</div>
                  </div>
                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
                      <CalendarDays className="h-5 w-5" />
@@ -158,6 +205,11 @@ export function DashboardPage() {
              <div className="absolute -right-4 -bottom-4 bg-primary/5 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
         </div>
 
+        {isFutureYear ? (
+           <div className="bg-card/50 rounded-xl border border-dashed shadow-sm p-4 flex flex-col items-center justify-center text-center text-muted-foreground opacity-60">
+                <span className="text-xs font-medium">{t("leaves.accrued_not_started", "Accrual starts Jan 1")}</span>
+           </div>
+        ) : (
         <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group">
              <div className="flex items-start justify-between z-10">
                  <div>
@@ -171,13 +223,14 @@ export function DashboardPage() {
              <p className="text-xs text-muted-foreground mt-4 z-10 relative">{t("leaves.accrued_desc", "Based on days worked")}</p>
              <div className="absolute -right-4 -bottom-4 bg-blue-50 dark:bg-blue-900/10 w-24 h-24 rounded-full group-hover:scale-150 transition-transform duration-500 ease-in-out" />
         </div>
+        )}
 
         <div className="bg-card rounded-xl border shadow-sm p-4 flex flex-col justify-between relative overflow-hidden group">
              <div className="flex items-start justify-between z-10">
                  <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("leaves.used", "Used / Planned")}</h3>
                     <div className="text-3xl font-bold text-foreground">
-                        {entitlement ? (entitlement.total_days - entitlement.remaining_days).toLocaleString(i18n.language) : 0}
+                        {usedOrPlannedDays.toLocaleString(i18n.language)}
                     </div>
                  </div>
                  <div className="p-2 bg-muted rounded-lg text-foreground">
@@ -210,13 +263,13 @@ export function DashboardPage() {
              <p className="text-muted-foreground font-medium text-sm">{t("leaves.recent_requests_desc", "History of your time off requests.")}</p>
         </div>
         
-        {requests?.length === 0 ? (
+        {displayedRequests?.length === 0 ? (
             <div className="text-center py-12 border rounded-xl border-dashed">
                 <p className="text-muted-foreground">{t("leaves.no_requests", "No requests found.")}</p>
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {requests?.map((req: any) => (
+                {displayedRequests?.map((req: any) => (
                     <Card key={req.id} className="group relative hover:shadow-md transition-all duration-300 overflow-hidden">
                         {/* Action Buttons - Top Right (Float) */}
                          <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -254,13 +307,7 @@ export function DashboardPage() {
                         <CardContent className="px-4 pb-4">
                              <div className="mb-2">
                                 <div className="text-lg font-bold text-foreground">
-                                    {format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale }) ? (
-                                        <span>{format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale })}</span>
-                                    ) : (
-                                        <span>
-                                            {format(new Date(req.start_date), "d. M.", { locale: dateLocale })} - {format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale })}
-                                        </span>
-                                    )}
+                                    {formatDateRange(req.start_date, req.end_date)}
                                 </div>
                              </div>
 
@@ -287,6 +334,7 @@ export function DashboardPage() {
         onOpenChange={setShowRequestSheet} 
         onSuccess={handleSuccess}
         entitlement={entitlement}
+        remainingDays={remainingDaysCalc}
       />
 
       <AlertDialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>

@@ -34,7 +34,9 @@ export function LoginPage() {
 
   const handleSignIn = async () => {
     try {
-      const { login_url } = await authApi.getLoginUrl();
+      // If we were redirected back with "consent_required", force consent on next try
+      const forceConsent = errorMsg === "consent_required";
+      const { login_url } = await authApi.getLoginUrl(forceConsent);
       window.location.href = login_url;
     } catch (err) {
       console.error(err);
@@ -117,7 +119,11 @@ export function LoginPage() {
                       {t("common.error")}
                     </AlertTitle>
                     <AlertDescription className="text-sm opacity-90">
-                      {t(`auth.${errorMsg}`, { defaultValue: errorMsg })}
+                      {/* Special handling for consent_required to show a friendly message */}
+                      {errorMsg === "consent_required" 
+                        ? t("auth.error_consent_required", { defaultValue: "Please grant the requested permissions to continue." })
+                        : t(`auth.${errorMsg}`, { defaultValue: errorMsg })
+                      }
                     </AlertDescription>
                   </div>
                 </div>
@@ -131,7 +137,7 @@ export function LoginPage() {
                   size="lg"
                 >
                    <Globe className="mr-2 h-4 w-4" />
-                  {t("auth.login_button")}
+                  {errorMsg === "consent_required" ? t("auth.grant_permissions", { defaultValue: "Grant Permissions" }) : t("auth.login_button")}
                 </Button>
                 
                  <div className="text-xs text-center text-muted-foreground px-4 leading-relaxed">

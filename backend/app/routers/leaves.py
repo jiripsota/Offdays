@@ -21,60 +21,85 @@ router = APIRouter(prefix="/leaves", tags=["leaves"])
 
 @router.get("/me/entitlement", response_model=LeaveEntitlementRead)
 def get_my_entitlement(
+    year: int = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get current year entitlement for the user. Calculates pro-rated accrual.
+    Get entitlement for specific year (or current if not specified).
     """
     now = datetime.utcnow()
-    current_year = now.year
+    target_year = year if year else now.year
+    
     entitlement = db.scalar(
         select(LeaveEntitlement).where(
             LeaveEntitlement.user_id == current_user.id,
-            LeaveEntitlement.year == current_year
+            LeaveEntitlement.year == target_year
         )
     )
     
     if not entitlement:
-        # Create default entitlement
+        # Create default entitlement for that year
+        # Check for existing approved requests in that year and deduct them
+        total_default = 20.0
+        
+        # We need to import func from sqlalchemy
+        from sqlalchemy import func
+        used_days = db.scalar(
+            select(func.sum(LeaveRequest.days_count))
+            .where(
+                LeaveRequest.user_id == current_user.id,
+                LeaveRequest.status == LeaveStatus.APPROVED,
+                func.extract('year', LeaveRequest.start_date) == target_year
+            )
+        ) or 0.0
+
         entitlement = LeaveEntitlement(
             user_id=current_user.id,
-            year=current_year,
-            total_days=20.0,
-            remaining_days=20.0
+            year=target_year,
+            total_days=total_default,
+            remaining_days=total_default - used_days
         )
         db.add(entitlement)
         db.commit()
         db.refresh(entitlement)
     
-    # Calculate pro-rated accrual (Czech law style approximation)
-    # Days elapsed in the year / Total days in year * total_days
-    start_of_year = datetime(current_year, 1, 1)
-    end_of_year = datetime(current_year, 12, 31)
-    days_in_year = (end_of_year - start_of_year).days + 1
-    days_elapsed = (now - start_of_year).days + 1
+    # Calculate pro-rated accrual
+    if target_year > now.year:
+        # Future year: 0 accrued so far
+        accrued_days = 0.0
+    elif target_year < now.year:
+        # Past year: all accrued
+        accrued_days = entitlement.total_days
+    else:
+        # Current year
+        start_of_year = datetime(target_year, 1, 1)
+        end_of_year = datetime(target_year, 12, 31)
+        days_in_year = (end_of_year - start_of_year).days + 1
+        days_elapsed = (now - start_of_year).days + 1
+        accrued_days = round((days_elapsed / days_in_year) * entitlement.total_days, 1)
     
-    accrued_days = round((days_elapsed / days_in_year) * entitlement.total_days, 1)
-    
-    # Wrap in a dict or hack the object to include accrued_days for Pydantic
-    # Since we added it to the schema, we can just return the ORM object and it will be populated if we set it
     entitlement.accrued_days = accrued_days
     return entitlement
 
 @router.get("/me/requests", response_model=List[LeaveRequestRead])
 def get_my_requests(
+    year: int = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Get list of my leave requests.
     """
-    requests = db.scalars(
-        select(LeaveRequest)
-        .where(LeaveRequest.user_id == current_user.id)
-        .order_by(desc(LeaveRequest.created_at))
-    ).all()
+    query = select(LeaveRequest).where(LeaveRequest.user_id == current_user.id)
+    
+    if year:
+        # Filter by year (using start_date year)
+        start_of_year = datetime(year, 1, 1).date()
+        end_of_year = datetime(year, 12, 31).date()
+        query = query.where(LeaveRequest.start_date >= start_of_year, LeaveRequest.start_date <= end_of_year)
+        
+    requests = db.scalars(query.order_by(desc(LeaveRequest.created_at))).all()
     return requests
 
 from datetime import date
@@ -396,6 +421,15 @@ async def approve_request(
     )
     if entitlement:
         entitlement.remaining_days -= leave_request.days_count
+        db.add(entitlement)
+    else:
+        # Create entitlement if it doesn't exist so we track the deduction
+        entitlement = LeaveEntitlement(
+            user_id=leave_request.user_id,
+            year=leave_request.start_date.year,
+            total_days=20.0,
+            remaining_days=20.0 - leave_request.days_count
+        )
         db.add(entitlement)
     
     # GOOGLE CALENDAR

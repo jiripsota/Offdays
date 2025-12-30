@@ -39,5 +39,22 @@ export function useDateFormatter() {
     }).format(d);
   }, [i18n.language]);
 
-  return { formatDate, formatDateTime };
+  const formatDateRange = useCallback((startDate: string | Date | number, endDate: string | Date | number) => {
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "-";
+
+    const formatter = new Intl.DateTimeFormat(i18n.language, {
+      dateStyle: "medium",
+    });
+
+    if (start.toDateString() === end.toDateString()) {
+        return formatter.format(start);
+    }
+
+    return `${formatter.format(start)} – ${formatter.format(end)}`;
+  }, [i18n.language]);
+
+  return { formatDate, formatDateTime, formatDateRange };
 }

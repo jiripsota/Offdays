@@ -42,22 +42,22 @@ interface RequestLeaveSheetProps {
     remaining_days: number;
     total_days: number;
   };
+  remainingDays?: number;
 }
 
-export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }: RequestLeaveSheetProps) {
+export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, remainingDays }: RequestLeaveSheetProps) {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   
   // Date-fns locale
   const dateLocale = i18n.language === 'cs' ? cs : undefined;
-  // Note: Dynamic import for locale might be tricky inside render or we can just import both top level
   
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [startHalfDay, setStartHalfDay] = useState(false);
   const [endHalfDay, setEndHalfDay] = useState(false);
-
+  
   const { data: requests } = useQuery({
       queryKey: ["my-requests"],
       queryFn: async () => {
@@ -112,7 +112,10 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
       totalDays = Math.max(0, totalDays - 0.5);
   }
 
-  const isOverEntitlement = entitlement && businessDays > entitlement.remaining_days;
+  // Use passed remainingDays or fallback to entitlement logic (though entitlement might be stale if pending not counted)
+  // But typically passed remainingDays is the accurate one.
+  const limit = remainingDays ?? entitlement?.remaining_days;
+  const isOverEntitlement = limit !== undefined && businessDays > limit;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,7 +161,6 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
         setIsLoading(false);
     }
   };
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
@@ -191,7 +193,7 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement }
                         <AlertDescription className="text-sm opacity-90">
                             {t("leaves.over_limit_msg", "This request exceeds your remaining entitlement.")}
                             <div className="mt-1 font-bold">
-                                    {t("leaves.available")}: {entitlement?.remaining_days} {t("common.days")}
+                                    {t("leaves.available")}: {limit?.toLocaleString(i18n.language)} {t("common.days")}
                             </div>
                         </AlertDescription>
                     </Alert>

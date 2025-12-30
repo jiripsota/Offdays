@@ -165,6 +165,7 @@
     "total_desc": "Contractual entitlement",
     "accrued": "Accrued So Far",
     "accrued_desc": "Based on days worked",
+    "accrued_not_started": "Accrual starts Jan 1",
     "new_request_btn": "Request Time Off",
     "recent_requests": "Recent Requests",
     "recent_requests_desc": "History of your time off requests.",

@@ -22,9 +22,16 @@ export const SectionPremium = ({ title, children, icon: Icon, className }: { tit
   </div>
 );
 
-export const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+export interface GlassCardProps {
+  children: React.ReactNode;
+  className?: string;
+  hover?: boolean;
+}
+
+export const GlassCard = ({ children, className, hover = true }: GlassCardProps) => (
   <div className={cn(
     "rounded-xl border border-muted/30 bg-background/50 backdrop-blur-xl",
+    hover && "transition-all hover:bg-muted/30 hover:border-muted/40",
     className
   )}>
     {children}

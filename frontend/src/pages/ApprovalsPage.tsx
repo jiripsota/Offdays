@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
-import { cs, enUS } from "date-fns/locale";
+import { useDateFormatter } from "@/hooks/useDateFormatter";
 import { Check, X, Calendar as CalendarIcon, Loader2, CheckSquare, CheckCircle, Ban } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,7 @@ export function ApprovalsPage() {
     const { toast } = useToast();
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-    const dateLocale = i18n.language === 'cs' ? cs : enUS;
+    const { formatDateRange } = useDateFormatter();
 
     const { data: requests, isLoading, refetch } = useQuery({
         queryKey: ["approvals"],
@@ -135,12 +134,7 @@ export function ApprovalsPage() {
                                         <TableCell>
                                             <div className="flex items-center gap-2 text-sm text-foreground/80">
                                                 <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                                                {format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale }) === format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale }) 
-                                                    ? format(new Date(req.start_date), "d. M. yyyy", { locale: dateLocale })
-                                                    : <>
-                                                        {format(new Date(req.start_date), "d. M.", { locale: dateLocale })} - {format(new Date(req.end_date), "d. M. yyyy", { locale: dateLocale })}
-                                                      </>
-                                                }
+                                                {formatDateRange(req.start_date, req.end_date)}
                                             </div>
                                         </TableCell>
                                         <TableCell>

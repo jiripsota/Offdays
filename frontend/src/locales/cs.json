@@ -163,6 +163,7 @@
     "total_desc": "Smluvní nárok na rok",
     "accrued": "Aktuální nárok",
     "accrued_desc": "Vzniklý nárok k dnešnímu datu",
+    "accrued_not_started": "Nárok vzniká až 1. ledna",
     "new_request_btn": "Požádat o dovolenou",
     "new_request_desc": "Vyberte dny dovolené v kalendáři. Váš nadřízený žádost posoudí.",
     "recent_requests": "Nedávné žádosti",

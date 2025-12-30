@@ -12,6 +12,16 @@
     "error": "Error",
     "days": "days",
     "days_short": "d",
+    "today": "Today",
+    "days_full": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
     "actions": "Actions",
     "submit": "Submit Request",
     "none": "None",
@@ -25,6 +35,7 @@
   },
   "sidebar": {
     "dashboard": "Dashboard",
+    "calendar": "Calendar",
     "my_items": "My Items",
     "approvals": "Approvals",
     "all_items": "All Items",
@@ -163,6 +174,10 @@
     "subtitle": "Overview of your leave and requests.",
     "subtitle_contractor": "Overview of your absence notifications."
   },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Team overview of vacations and absences of all organization members."
+  },
   "leaves": {
     "remaining": "Remaining",
     "remaining_desc": "Days available this year",
@@ -233,7 +248,8 @@
     "notice_submitted_desc": "Your absence notification has been recorded.",
     "submit_notification": "Submit Notification",
     "total_days": "Total Days (Year)",
-    "remaining_days": "Remaining Days"
+    "remaining_days": "Remaining Days",
+    "vacation": "Vacation"
   },
   "status": {
     "approved": "Approved",

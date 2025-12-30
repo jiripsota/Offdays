@@ -20,9 +20,9 @@ import {
   Folder,
   CreditCard,
   AlertCircle,
-  Play,
   CheckSquare,
-  Settings
+  Settings,
+  Calendar
 } from "lucide-react";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useTokenRefresh } from "../../hooks/useTokenRefresh";
@@ -197,6 +197,13 @@ function SidebarContent({
           to="/approvals"
           label={t("sidebar.approvals", "Approvals")}
           icon={CheckSquare}
+          collapsed={collapsed}
+          onClick={handleNavClick}
+        />
+        <SidebarNavItem
+          to="/calendar"
+          label={t("sidebar.calendar", "Calendar")}
+          icon={Calendar}
           collapsed={collapsed}
           onClick={handleNavClick}
         />

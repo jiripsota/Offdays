@@ -12,6 +12,16 @@
     "error": "Chyba",
     "days": "dní",
     "days_short": "d",
+    "today": "Dnes",
+    "days_full": {
+      "mon": "Pondělí",
+      "tue": "Úterý",
+      "wed": "Středa",
+      "thu": "Čtvrtek",
+      "fri": "Pátek",
+      "sat": "Sobota",
+      "sun": "Neděle"
+    },
     "actions": "Akce",
     "submit": "Odeslat žádost",
     "none": "Žádný",
@@ -25,6 +35,7 @@
   },
   "sidebar": {
     "dashboard": "Můj přehled",
+    "calendar": "Kalendář",
     "my_items": "Moje položky",
     "approvals": "Schvalování",
     "all_items": "Všechny položky",
@@ -161,6 +172,10 @@
     "subtitle": "Přehled vaší dovolené a žádostí.",
     "subtitle_contractor": "Přehled vašich oznámení o nepřítomnosti."
   },
+  "calendar": {
+    "title": "Kalendář",
+    "subtitle": "Týmový přehled dovolených a absencí všech členů organizace."
+  },
   "leaves": {
     "remaining": "Zbývá",
     "remaining_desc": "Dny k dispozici tento rok",
@@ -234,6 +249,7 @@
     "submit_notification": "Odeslat oznámení",
     "total_days": "Celkem dní (Rok)",
     "remaining_days": "Zbývající dny",
+    "vacation": "Dovolená",
     "half_day": "Půl dne (0.5)",
     "half_day_start": "Začít půldnem",
     "half_day_end": "Končit půldnem"

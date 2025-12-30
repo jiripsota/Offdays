@@ -9,6 +9,7 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ApprovalsPage } from "./pages/ApprovalsPage";
 import { SettingsPage } from "./pages/admin/SettingsPage";
+import { CalendarPage } from "./pages/CalendarPage";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { path: "admin/subscription", element: <AdminSubscriptionPage /> },
       { path: "admin/settings", element: <SettingsPage /> },
       { path: "approvals", element: <ApprovalsPage /> },
+      { path: "calendar", element: <CalendarPage /> },
     ],
   },
   {

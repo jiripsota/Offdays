@@ -104,5 +104,13 @@ export const leavesApi = {
         });
         if (!res.ok) throw new Error("Failed");
         return res.json();
+    },
+
+    getCalendar: async () => {
+        const res = await fetch("/api/leaves/calendar", {
+             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+        if (!res.ok) throw new Error("Failed");
+        return res.json() as Promise<LeaveRequest[]>;
     }
 };

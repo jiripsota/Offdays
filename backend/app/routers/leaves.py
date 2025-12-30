@@ -598,3 +598,25 @@ def get_user_entitlement(
     if not entitlement:
          return LeaveEntitlementRead(id=0, user_id=user_id, year=current_year, total_days=20.0, remaining_days=20.0)
     return entitlement
+@router.get("/calendar", response_model=List[LeaveRequestRead])
+def get_team_calendar(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get all approved leave requests for the team/tenant.
+    """
+    domain = current_user.email.split("@")[-1]
+    
+    query = (
+        select(LeaveRequest)
+        .join(User)
+        .where(
+            User.email.like(f"%@{domain}"),
+            LeaveRequest.status.in_([LeaveStatus.APPROVED, LeaveStatus.CANCEL_PENDING])
+        )
+        .options(joinedload(LeaveRequest.user))
+    )
+    
+    requests = db.scalars(query).all()
+    return requests

@@ -21,7 +21,8 @@ import {
   CreditCard,
   AlertCircle,
   Play,
-  CheckSquare
+  CheckSquare,
+  Settings
 } from "lucide-react";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useTokenRefresh } from "../../hooks/useTokenRefresh";
@@ -225,6 +226,14 @@ function SidebarContent({
               to="/admin/subscription"
               label={t("billing.title")}
               icon={CreditCard}
+              collapsed={collapsed}
+              onClick={handleNavClick}
+            />
+            
+            <SidebarNavItem
+              to="/admin/settings"
+              label={t("sidebar.settings", "Settings")}
+              icon={Settings}
               collapsed={collapsed}
               onClick={handleNavClick}
             />

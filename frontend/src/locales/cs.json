@@ -17,6 +17,8 @@
     "none": "Žádný",
     "save": "Uložit změny",
     "success": "Úspěch",
+    "saved": "Nastavení bylo úspěšně uloženo.",
+    "error_desc": "Nepodařilo se uložit nastavení.",
     "confirm_title": "Jste si jisti?",
     "confirm_desc": "Tuto akci nelze vzít zpět.",
     "confirm": "Potvrdit"
@@ -38,7 +40,8 @@
     "switch_dark": "Přepnout na tmavý režim",
     "collapse": "Sbalit",
     "expand": "Rozbalit boční panel",
-    "logout": "Odhlásit se"
+    "logout": "Odhlásit se",
+    "settings": "Nastavení"
   },
   "auth": {
     "login_title": "Přihlaste se pomocí firemního Google účtu.",
@@ -241,5 +244,30 @@
     "pending": "Čeká na vyřízení",
     "cancel_pending": "Čeká na zrušení",
     "cancelled": "Zrušeno"
+  },
+  "settings": {
+    "title": "Nastavení organizace",
+    "subtitle": "Správa firemních předvoleb a integrací.",
+    "google_calendar": "Integrace Google Kalendáře",
+    "shared_calendar_id": "ID sdíleného kalendáře",
+    "calendar_hint": "Všechny schválené nepřítomnosti budou automaticky synchronizovány do tohoto kalendáře. Ujistěte se, že servisní účet má do tohoto kalendáře přístup pro zápis.",
+    "calendar_hint_sa": "Všechny schválené nepřítomnosti budou automaticky synchronizovány do tohoto kalendáře. Ujistěte se, že jste tento kalendář nasdíleli servisnímu účtu:",
+    "calendar_hint_sa_access": "(udělte mu oprávnění 'Provádět změny událostí').",
+    "general": "Obecné nastavení",
+    "default_vacation_days": "Standardní roční nárok na dovolenou",
+    "default_vacation_days_desc": "Tento počet dní bude nastaven jako výchozí nárok pro všechny zaměstnance ve firmě.",
+    "calendar_updated": "Nastavení organizace byla úspěšně uložena.",
+    "calendar_error": "Nepodařilo se aktualizovat ID sdíleného kalendáře.",
+    "sync_now": "Synchronizovat vše",
+    "sync_success": "Synchronizace dokončena",
+    "sync_success_desc": "Úspěšně sesynchronizováno {{count}} událostí.",
+    "sync_partial": "Synchronizace dokončena s chybami",
+    "sync_error": "Nepodařilo se sesynchronizovat kalendář.",
+    "setup_steps": "Instrukce pro nastavení",
+    "step_enable_api": "Povolte Google Calendar API",
+    "step_enable_api_desc": "Toto musí být provedeno v Google Cloud projektu, kde byl vytvořen váš servisní účet.",
+    "step_share_calendar": "Nasdílejte kalendář servisnímu účtu:",
+    "step_share_calendar_desc": "V nastavení Google Kalendáře přidejte tento e-mail a udělte mu oprávnění 'Provádět změny událostí'.",
+    "step_enter_id": "Vložte ID kalendáře (výše) a uložte."
   }
 }

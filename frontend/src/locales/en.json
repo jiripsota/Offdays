@@ -17,6 +17,8 @@
     "none": "None",
     "save": "Save Changes",
     "success": "Success",
+    "saved": "Settings saved successfully.",
+    "error_desc": "Failed to save settings.",
     "confirm_title": "Are you sure?",
     "confirm_desc": "This action cannot be undone.",
     "confirm": "Confirm"
@@ -38,7 +40,8 @@
     "switch_dark": "Switch to dark mode",
     "collapse": "Collapse",
     "expand": "Expand sidebar",
-    "logout": "Logout"
+    "logout": "Logout",
+    "settings": "Settings"
   },
   "auth": {
     "admin_title": "Offdays Admin",
@@ -238,5 +241,30 @@
     "pending": "Pending",
     "cancel_pending": "Cancel Pending",
     "cancelled": "Cancelled"
+  },
+  "settings": {
+    "title": "Organization Settings",
+    "subtitle": "Manage company-wide preferences and integrations.",
+    "google_calendar": "Google Calendar Integration",
+    "shared_calendar_id": "Shared Calendar ID",
+    "calendar_hint": "All approved absences will be automatically synced to this calendar. Ensure that the service account has write access to this calendar.",
+    "calendar_hint_sa": "All approved absences will be automatically synced to this calendar. Ensure that you have shared this calendar with the service account:",
+    "calendar_hint_sa_access": "(give it 'Make changes to events' access).",
+    "general": "General Settings",
+    "default_vacation_days": "Standard annual vacation allowance",
+    "default_vacation_days_desc": "This number of days will be set as the standard allowance for all employees in the company.",
+    "calendar_updated": "Organization settings updated successfully.",
+    "calendar_error": "Failed to update shared calendar ID.",
+    "sync_now": "Synchronize All",
+    "sync_success": "Sync completed",
+    "sync_success_desc": "Successfully synchronized {{count}} events.",
+    "sync_partial": "Sync completed with errors",
+    "sync_error": "Failed to synchronize calendar.",
+    "setup_steps": "Setup Instructions",
+    "step_enable_api": "Enable Google Calendar API",
+    "step_enable_api_desc": "This must be done in the Google Cloud project where your service account was created.",
+    "step_share_calendar": "Share your calendar with the service account:",
+    "step_share_calendar_desc": "In Google Calendar settings, add this email and give it 'Make changes to events' permission.",
+    "step_enter_id": "Enter the Calendar ID above and Save."
   }
 }

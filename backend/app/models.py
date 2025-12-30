@@ -29,6 +29,8 @@ class Tenant(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     domain: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    shared_calendar_id: Mapped[str | None] = mapped_column(String(255), nullable=True) # Corporate Google Calendar ID
+    default_vacation_days: Mapped[int] = mapped_column(Integer, default=20)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -187,6 +189,7 @@ class LeaveRequest(Base):
     note: Mapped[str | None] = mapped_column(Text)
     
     gcal_event_id: Mapped[str | None] = mapped_column(String(255))
+    shared_gcal_event_id: Mapped[str | None] = mapped_column(String(255)) # Event ID in the company shared calendar
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -4,6 +4,35 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from .config import settings
 from .models import OAuthAccount
+from google.oauth2 import service_account
+from google.auth.transport.requests import Request as GoogleRequest
+
+_sa_token_cache = {"token": None, "expiry": 0}
+
+def get_service_account_token(scopes: List[str]) -> str:
+    """
+    Get an access token for the service account.
+    Uses a simple in-memory cache to avoid repeated requests.
+    """
+    now = int(time())
+    if _sa_token_cache["token"] and _sa_token_cache["expiry"] > now + 60:
+        return _sa_token_cache["token"]
+
+    try:
+        creds = service_account.Credentials.from_service_account_file(
+            settings.google_service_account_file,
+            scopes=scopes
+        )
+        # Refresh to get access token
+        creds.refresh(GoogleRequest())
+        
+        _sa_token_cache["token"] = creds.token
+        _sa_token_cache["expiry"] = int(creds.expiry.timestamp()) if creds.expiry else now + 3600
+        
+        return creds.token
+    except Exception as e:
+        print(f"Failed to get service account token: {e}")
+        raise e
 
 async def refresh_google_token(db: Session, oauth: OAuthAccount) -> str:
     """
@@ -104,21 +133,14 @@ async def search_google_users(access_token: str, query: str) -> List[Dict[str, A
                 
         return results
 
-async def create_calendar_event(access_token: str, summary: str, start_date: str, end_date: str) -> str:
+async def create_calendar_event(access_token: str, summary: str, start_date: str, end_date: str, calendar_id: str = "primary") -> str:
     """
-    Create an all-day event in the primary calendar.
+    Create an all-day event in the calendar.
     Returns: event_id
     start_date/end_date in "YYYY-MM-DD" format.
-    Google Calendar API end.date is exclusive for all-day events, so we might need to add +1 day if the caller passes inclusive.
-    However, let's assume caller handles it or we handle it here.
-    Standard: Leave is inclusive. Google 'end' is exclusive. So end_date should be +1 day of the leave end.
-    
-    Wait, `start_date` and `end_date` passed here are strings. 
-    Let's assume caller sends the correct exclusive end date string or handle it?
-    Let's handle it here if we pass date objects, but string is safer for raw API.
-    Let's assume the caller passes correct ISO strings.
+    Google Calendar API end.date is exclusive for all-day events.
     """
-    url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+    url = f"https://www.googleapis.com/calendar/v3/calendars/{calendar_id}/events"
     
     event_body = {
         "summary": summary,
@@ -135,18 +157,23 @@ async def create_calendar_event(access_token: str, summary: str, start_date: str
             headers={"Authorization": f"Bearer {access_token}"}
         )
         
-        if resp.status_code != 200:
-            print(f"Failed to create Google Calendar event: {resp.text}")
-            raise ValueError(f"Google Calendar API Error: {resp.status_code}")
+        if resp.status_code < 200 or resp.status_code >= 300:
+            error_detail = resp.text
+            try:
+                error_json = resp.json()
+                error_detail = error_json.get("error", {}).get("message", resp.text)
+            except: pass
+            print(f"Failed to create Google Calendar event: {error_detail}")
+            raise ValueError(f"Google Calendar API Error: {error_detail}")
             
         data = resp.json()
         return data["id"]
 
-async def delete_calendar_event(access_token: str, event_id: str):
+async def delete_calendar_event(access_token: str, event_id: str, calendar_id: str = "primary"):
     """
-    Delete an event from the primary calendar.
+    Delete an event from the calendar.
     """
-    url = f"https://www.googleapis.com/calendar/v3/calendars/primary/events/{event_id}"
+    url = f"https://www.googleapis.com/calendar/v3/calendars/{calendar_id}/events/{event_id}"
     
     async with httpx.AsyncClient() as client:
         resp = await client.delete(

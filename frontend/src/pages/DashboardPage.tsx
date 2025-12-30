@@ -167,7 +167,7 @@ export function DashboardPage() {
     <div className="flex-1 w-full p-6 space-y-8">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/10 rounded-xl">
                 <LayoutDashboard className="h-8 w-8 text-primary" />

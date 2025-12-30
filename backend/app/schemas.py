@@ -26,8 +26,15 @@ class TenantBase(BaseModel):
 class TenantCreate(TenantBase):
     pass
 
+class TenantUpdate(BaseModel):
+    shared_calendar_id: Optional[str] = None
+    default_vacation_days: Optional[int] = None
+
 class TenantRead(TenantBase, ORMModel):
     id: int
+    shared_calendar_id: Optional[str] = None
+    default_vacation_days: int = 20
+    service_account_email: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

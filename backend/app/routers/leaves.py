@@ -41,8 +41,14 @@ def get_my_entitlement(
     
     if not entitlement:
         # Create default entitlement for that year
-        # Check for existing approved requests in that year and deduct them
-        total_default = 20.0
+        # Fetch tenant settings to get default_vacation_days
+        from app.models import Tenant
+        domain = current_user.email.split("@")[-1]
+        tenant = db.scalar(select(Tenant).where(Tenant.domain == domain))
+        if not tenant:
+            tenant = db.scalar(select(Tenant))
+        
+        total_default = float(tenant.default_vacation_days) if tenant else 20.0
         
         # We need to import func from sqlalchemy
         from sqlalchemy import func
@@ -397,15 +403,33 @@ async def approve_request(
             db.add(entitlement)
             
         # Delete GCal event if exists
-        if leave_request.gcal_event_id:
-            oauth = db.scalar(select(OAuthAccount).where(OAuthAccount.user_id == requester.id))
-            if oauth:
-                try:
-                    from app.google_api import google_calendar_service # Need to add delete to google_api
-                    # For now just log, but I should ideally implement it
-                    print(f"Should delete GCal event {leave_request.gcal_event_id}")
-                except: pass
-        
+        try:
+            oauth = db.scalar(select(OAuthAccount).where(OAuthAccount.user_id == requester.id, OAuthAccount.provider == "google"))
+            admin_oauth = db.scalar(select(OAuthAccount).where(OAuthAccount.user_id == current_user.id, OAuthAccount.provider == "google"))
+            
+            # Personal
+            if leave_request.gcal_event_id and oauth:
+                token = await refresh_google_token(db, oauth)
+                await delete_calendar_event(token, leave_request.gcal_event_id)
+            
+            # Shared
+            if leave_request.shared_gcal_event_id:
+                # Get shared calendar ID
+                from app.models import Tenant
+                domain = requester.email.split("@")[-1]
+                tenant = db.scalar(select(Tenant).where(Tenant.domain == domain))
+                if not tenant: tenant = db.scalar(select(Tenant))
+                
+                if tenant and tenant.shared_calendar_id:
+                    try:
+                        from app.google_api import get_service_account_token
+                        sa_token = get_service_account_token(["https://www.googleapis.com/auth/calendar"])
+                        await delete_calendar_event(sa_token, leave_request.shared_gcal_event_id, calendar_id=tenant.shared_calendar_id)
+                    except Exception as e:
+                        print(f"Shared GCal delete error (SA): {e}")
+        except Exception as e:
+            print(f"Failed to delete GCal events: {e}")
+            
         db.commit()
         db.refresh(leave_request)
         return leave_request
@@ -433,21 +457,55 @@ async def approve_request(
         )
         db.add(entitlement)
     
-    # GOOGLE CALENDAR
+    # GOOGLE CALENDAR SYNC
     oauth = db.scalar(select(OAuthAccount).where(OAuthAccount.user_id == requester.id, OAuthAccount.provider == "google"))
+    
+    # Get shared calendar ID from tenant
+    from app.models import Tenant
+    domain = requester.email.split("@")[-1]
+    tenant = db.scalar(select(Tenant).where(Tenant.domain == domain))
+    if not tenant:
+        tenant = db.scalar(select(Tenant))
+    shared_cal_id = tenant.shared_calendar_id if tenant else None
+    
+    # Get current user (admin/manager) token for shared calendar sync if needed
+    admin_oauth = db.scalar(select(OAuthAccount).where(OAuthAccount.user_id == current_user.id, OAuthAccount.provider == "google"))
+
     if oauth:
         try:
             token = await refresh_google_token(db, oauth)
-            gcal_end = leave_request.end_date + timedelta(days=1)
+            gcal_end = (leave_request.end_date + timedelta(days=1)).isoformat()
+            
+            # 1. Sync to Personal Calendar
+            summary = f"{requester.full_name or requester.email} ({leave_request.days_count})"
             event_id = await create_calendar_event(
                 access_token=token,
-                summary=f"Dovolená: {requester.full_name or requester.email}",
+                summary=summary,
                 start_date=leave_request.start_date.isoformat(),
-                end_date=gcal_end.isoformat()
+                end_date=gcal_end
             )
             leave_request.gcal_event_id = event_id
         except Exception as e:
-            print(f"GCal error: {e}")
+            print(f"Personal GCal error: {e}")
+
+    # 2. Sync to Shared Calendar (using Service Account)
+    if shared_cal_id:
+        try:
+            from app.google_api import get_service_account_token
+            sa_token = get_service_account_token(["https://www.googleapis.com/auth/calendar"])
+            gcal_end = (leave_request.end_date + timedelta(days=1)).isoformat()
+            
+            summary = f"{requester.full_name or requester.email} ({leave_request.days_count})"
+            shared_event_id = await create_calendar_event(
+                access_token=sa_token,
+                summary=summary,
+                start_date=leave_request.start_date.isoformat(),
+                end_date=gcal_end,
+                calendar_id=shared_cal_id
+            )
+            leave_request.shared_gcal_event_id = shared_event_id
+        except Exception as e:
+            print(f"Shared GCal error (SA): {e}")
 
     db.commit()
     db.refresh(leave_request)

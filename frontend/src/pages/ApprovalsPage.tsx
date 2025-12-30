@@ -80,7 +80,7 @@ export function ApprovalsPage() {
 
     return (
         <div className="flex-1 w-full p-6 space-y-8">
-            <div className="flex items-center gap-4 border-b pb-6">
+            <div className="flex items-center gap-4">
                 <div className="p-3 bg-primary/10 rounded-xl">
                     <CheckSquare className="h-8 w-8 text-primary" />
                 </div>

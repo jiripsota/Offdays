@@ -74,7 +74,7 @@ export function AdminSubscriptionPage() {
   return (
     <div className="flex-1 overflow-auto p-6 space-y-8 bg-background/50">
       {/* Header / Hero Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/10 rounded-xl shadow-inner border-primary/10 group/icon transition-all duration-300">
               <CreditCard className="w-8 h-8 text-primary group-hover/icon:scale-110 transition-transform duration-300" />

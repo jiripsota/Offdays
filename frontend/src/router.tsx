@@ -8,6 +8,7 @@ import { AdminSubscriptionPage } from "./components/admin/AdminSubscriptionPage"
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ApprovalsPage } from "./pages/ApprovalsPage";
+import { SettingsPage } from "./pages/admin/SettingsPage";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "admin/users", element: <AdminUsersPage /> },
       { path: "admin/subscription", element: <AdminSubscriptionPage /> },
+      { path: "admin/settings", element: <SettingsPage /> },
       { path: "approvals", element: <ApprovalsPage /> },
     ],
   },

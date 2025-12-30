@@ -22,7 +22,8 @@ from app.routers import users; logger.info("  - users loaded")
 from app.routers import config; logger.info("  - config loaded")
 from app.routers import billing; logger.info("  - billing loaded")
 from app.routers import integrations; logger.info("  - integrations loaded")
-from app.routers import leaves; logger.info("  - leaves loaded")
+from app.routers import leaves
+from app.routers import tenants
 from app import auth
 from app.database import Base, engine
 from app import models  # Ensure models are registered
@@ -110,6 +111,7 @@ app.include_router(config.router)
 app.include_router(billing.router)
 app.include_router(integrations.router)
 app.include_router(leaves.router)
+app.include_router(tenants.router)
 
 
 # Mount static files if directory exists

@@ -31,7 +31,9 @@
     "error_desc": "Failed to save settings.",
     "confirm_title": "Are you sure?",
     "confirm_desc": "This action cannot be undone.",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "holiday": "Holiday",
+    "weekend": "Weekend"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -52,7 +54,9 @@
     "collapse": "Collapse",
     "expand": "Expand sidebar",
     "logout": "Logout",
-    "settings": "Settings"
+    "settings": "Settings",
+    "management_header": "MANAGEMENT",
+    "team_oversight": "Team Oversight"
   },
   "auth": {
     "admin_title": "Offdays Admin",
@@ -81,6 +85,7 @@
       "subtitle": "Manage all users in the system.",
       "name": "Name",
       "role": "Role",
+      "user_type": "User Type",
       "status": "Status",
       "last_login": "Last Login",
       "last_login_never": "Never logged in",
@@ -118,9 +123,21 @@
         "limit_reached": "Plan limit reached",
         "edit_settings": "Edit Settings"
       },
-      "user_type": "Type",
       "type_employee": "Employee",
-      "type_contractor": "Contractor"
+      "type_contractor": "Contractor",
+      "user_absence": {
+        "title": "Team Overview",
+        "subtitle": "Overview of leave and absence notifications from your team.",
+        "select_user": "Select User",
+        "no_user_selected": "No user selected",
+        "select_user_hint": "Please select a user from the list to view their statistics.",
+        "records": "records",
+        "no_absences_this_year": "No absences recorded for this year.",
+        "used_contractor": "Reported / Planned",
+        "used": "Consumed / Planned",
+        "total_contractor": "Record Count",
+        "total": "Total Entitlement"
+      }
     }
   },
   "language": {
@@ -193,8 +210,10 @@
     "accrued_desc": "Based on days worked",
     "accrued_total": "Accrued / Contractual Allowance",
     "accrued_total_desc": "Full allowance: {{total}} {{unit}}",
-    "accrued_not_started": "Accrual starts Jan 1",
-    "new_request_btn": "Request Time Off",
+    "accrued_not_started": "Accrual starts on January 1st",
+    "total_days": "Total Days (Year)",
+    "remaining_days": "Remaining Days",
+    "new_request_btn": "Request Leave",
     "new_request_btn_contractor": "Report Absence",
     "recent_requests": "Recent Requests",
     "recent_requests_contractor": "Recent Notifications",
@@ -222,15 +241,15 @@
     "approvals": "Approvals",
     "approvals_title": "Approvals",
     "approvals_subtitle": "Manage leave requests and absence notifications from your team.",
-    "pending_requests": "Pending Requests / Notifications",
+    "pending_requests": "Pending Requests",
     "no_pending": "No pending requests.",
     "approve": "Approve",
     "reject": "Reject",
-    "approve_reject": "Approve / Reject",
     "deny_cancel": "Deny Cancellation",
     "approve_cancel": "Confirm Cancellation",
     "approved": "Approved",
     "rejected": "Rejected",
+    "vacation": "Vacation",
     "request_approved_desc": "The request has been approved.",
     "request_rejected_desc": "The request has been rejected.",
     "days": "Days",

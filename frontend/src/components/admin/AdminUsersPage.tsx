@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/table";
 import { useTranslation } from "react-i18next";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
-import { getAvatarUrl } from "../../utils/avatarUrl";
+import { getAvatarUrl, getInitials } from "../../utils/avatarUrl";
 import { GlassCard, PremiumBadge } from "../ui/premium";
 
 export function AdminUsersPage() {
@@ -84,17 +84,6 @@ export function AdminUsersPage() {
     );
   });
 
-  const getInitials = (name?: string | null, email?: string) => {
-    if (name) {
-      return name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    return email?.slice(0, 2).toUpperCase() || "??";
-  };
 
   return (
     <div className="flex-1 overflow-auto p-6 space-y-8 bg-background/50">
@@ -277,37 +266,37 @@ export function AdminUsersPage() {
 
                     <TableCell className="px-4 py-3">
                       {user.is_admin ? (
-                        <Badge variant="default">
+                        <PremiumBadge variant="blue" className="bg-cyan-500/10 text-cyan-700 ring-cyan-500/20 dark:bg-cyan-500/10 dark:text-cyan-400">
                           {t("admin.users.admin")}
-                        </Badge>
+                        </PremiumBadge>
                       ) : (
-                        <Badge variant="outline">
+                        <PremiumBadge variant="gray">
                           {t("admin.users.user")}
-                        </Badge>
+                        </PremiumBadge>
                       )}
                     </TableCell>
 
                     <TableCell className="px-4 py-3">
                       {user.user_type === "contractor" ? (
-                        <Badge variant="outline" className="bg-orange-50/50 text-orange-700 border-orange-200">
+                        <PremiumBadge variant="orange">
                           {t("admin.users.type_contractor")}
-                        </Badge>
+                        </PremiumBadge>
                       ) : (
-                        <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-200">
+                        <PremiumBadge variant="blue">
                           {t("admin.users.type_employee")}
-                        </Badge>
+                        </PremiumBadge>
                       )}
                     </TableCell>
 
                     <TableCell className="px-4 py-3">
                       {user.is_active ? (
-                        <Badge variant="outline">
+                        <PremiumBadge variant="green" className="bg-emerald-500/10 text-emerald-700 ring-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400">
                           {t("admin.users.active")}
-                        </Badge>
+                        </PremiumBadge>
                       ) : (
-                        <Badge variant="destructive">
+                        <PremiumBadge variant="red">
                           {t("admin.users.inactive")}
-                        </Badge>
+                        </PremiumBadge>
                       )}
                     </TableCell>
 

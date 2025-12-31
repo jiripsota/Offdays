@@ -194,13 +194,6 @@ function SidebarContent({
           onClick={handleNavClick}
         />
         <SidebarNavItem
-          to="/approvals"
-          label={t("sidebar.approvals", "Approvals")}
-          icon={CheckSquare}
-          collapsed={collapsed}
-          onClick={handleNavClick}
-        />
-        <SidebarNavItem
           to="/calendar"
           label={t("sidebar.calendar", "Calendar")}
           icon={Calendar}
@@ -208,6 +201,33 @@ function SidebarContent({
           onClick={handleNavClick}
         />
 
+        {/* Management Section (Visible to Admins and potentially Supervisors) */}
+        <div className="hidden md:block">
+          <div className="mt-6 mb-2">
+            {!collapsed && (
+              <div className="px-5 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70">
+                {t("sidebar.management_header", "Management")}
+              </div>
+            )}
+            <div className="mx-4 border-t border-muted/30" />
+          </div>
+
+          <SidebarNavItem
+            to="/approvals"
+            label={t("sidebar.approvals", "Approvals")}
+            icon={CheckSquare}
+            collapsed={collapsed}
+            onClick={handleNavClick}
+          />
+
+          <SidebarNavItem
+            to="/admin/team-oversight"
+            label={t("sidebar.team_oversight", "Team Oversight")}
+            icon={Users}
+            collapsed={collapsed}
+            onClick={handleNavClick}
+          />
+        </div>
 
         {user.is_admin && (
           <div className="hidden md:block">

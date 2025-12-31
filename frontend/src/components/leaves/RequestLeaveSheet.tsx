@@ -16,24 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 
-// Simple CZ Holiday list for frontend preview
-const CZ_HOLIDAYS = [
-    { m: 0, d: 1 },   // Nový rok
-    { m: 4, d: 1 },   // Svátek práce
-    { m: 4, d: 8 },   // Den vítězství
-    { m: 6, d: 5 },   // Cyril/Metod
-    { m: 6, d: 6 },   // Jan Hus
-    { m: 8, d: 28 },  // Den české státnosti
-    { m: 9, d: 28 },  // Vznik ČSR
-    { m: 10, d: 17 }, // Den boje za svobodu
-    { m: 11, d: 24 }, // Štědrý den
-    { m: 11, d: 25 },
-    { m: 11, d: 26 },
-];
-
-const isCZHoliday = (date: Date) => {
-    return CZ_HOLIDAYS.some(h => date.getMonth() === h.m && date.getDate() === h.d);
-};
+import { isCZHoliday } from "@/utils/holidays";
 
 interface RequestLeaveSheetProps {
   open: boolean;
@@ -237,6 +220,9 @@ export function RequestLeaveSheet({ open, onOpenChange, onSuccess, entitlement, 
                                     holiday: "text-red-600 font-bold decoration-red-600/30 underline underline-offset-4",
                                     approved: "bg-emerald-500/10 text-emerald-700 font-bold hover:bg-emerald-500/20",
                                     pending: "bg-amber-500/10 text-amber-700 font-medium hover:bg-amber-500/20"
+                                }}
+                                classNames={{
+                                    weekday: "text-muted-foreground rounded-md w-9 font-medium text-[0.8rem] text-center uppercase tracking-wider"
                                 }}
                                 className="rounded-md border-0"
                             />

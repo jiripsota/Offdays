@@ -34,6 +34,7 @@ export const usersApi = {
   create: (payload: UserCreatePayload) => apiClient.post<User>("/users", payload),
   update: (id: string, payload: UserUpdatePayload) =>
     apiClient.patch<User>(`/users/${id}`, payload),
+  listManaged: () => apiClient.get<User[]>("/users/managed"),
   listAllForSharing: () => apiClient.get<User[]>("/users/all"),
   searchGoogleWorkspace: (query: string) =>
     apiClient.get<User[]>(`/integrations/google/search-users?query=${encodeURIComponent(query)}`),

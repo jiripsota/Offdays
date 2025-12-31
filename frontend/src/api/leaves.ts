@@ -1,8 +1,4 @@
-import { api } from "./api"; // Assuming a base api wrapper exists, or standard fetch?
-// AdminUsersPage used 'usersApi' which likely uses axios or fetch wrapper.
-// Let's assume standard fetch wrapper or check `api/users.ts` content first.
-// I'll create this file properly after seeing api/users.ts structure.
-// For now, placeholder content matching commonly used pattern.
+import { apiClient } from "./client";
 
 export interface LeaveRequest {
     id: string;
@@ -28,89 +24,30 @@ export interface LeaveEntitlement {
 }
 
 export const leavesApi = {
-    getEntitlement: async () => {
-        const res = await fetch("/api/leaves/me/entitlement", {
-             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json() as Promise<LeaveEntitlement>;
-    },
+    getEntitlement: () => apiClient.get<LeaveEntitlement>("/leaves/me/entitlement"),
     
-    getRequests: async () => {
-         const res = await fetch("/api/leaves/me/requests", {
-             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json() as Promise<LeaveRequest[]>;
-    },
+    getRequests: () => apiClient.get<LeaveRequest[]>("/leaves/me/requests"),
 
-    createRequest: async (data: { start_date: string; end_date: string; note: string }) => {
-        const res = await fetch("/api/leaves/request", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}` 
-            },
-            body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json();
-    },
+    createRequest: (data: { start_date: string; end_date: string; note: string }) => 
+        apiClient.post<any>("/leaves/request", data),
 
-    // Admin / Approvals
-    getApprovals: async () => {
-        const res = await fetch("/api/leaves/approvals", {
-             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json() as Promise<LeaveRequest[]>;
-    },
+    getApprovals: () => apiClient.get<LeaveRequest[]>("/leaves/approvals"),
 
-    approve: async (id: string) => {
-         const res = await fetch(`/api/leaves/${id}/approve`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json();
-    },
+    approve: (id: string) => apiClient.post<any>(`/leaves/${id}/approve`),
 
-    reject: async (id: string) => {
-         const res = await fetch(`/api/leaves/${id}/reject`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json();
-    },
+    reject: (id: string) => apiClient.post<any>(`/leaves/${id}/reject`),
 
-    // Admin Entitlement
-    getAdminEntitlement: async (userId: string) => {
-         const res = await fetch(`/api/leaves/admin/${userId}/entitlement`, {
-             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json() as Promise<LeaveEntitlement>;
-    },
+    getAdminEntitlement: (userId: string) => 
+        apiClient.get<LeaveEntitlement>(`/leaves/admin/${userId}/entitlement`),
 
-    updateAdminEntitlement: async (userId: string, data: Partial<LeaveEntitlement>) => {
-         const res = await fetch(`/api/leaves/admin/${userId}/entitlement`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}` 
-            },
-            body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json();
-    },
+    updateAdminEntitlement: (userId: string, data: Partial<LeaveEntitlement>) => 
+        apiClient.put<any>(`/leaves/admin/${userId}/entitlement`, data),
 
-    getCalendar: async () => {
-        const res = await fetch("/api/leaves/calendar", {
-             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        });
-        if (!res.ok) throw new Error("Failed");
-        return res.json() as Promise<LeaveRequest[]>;
-    }
+    getCalendar: () => apiClient.get<LeaveRequest[]>("/leaves/calendar"),
+    
+    getUserLeaves: (userId: string) => 
+        apiClient.get<LeaveRequest[]>(`/leaves/admin/users/${userId}/leaves`),
+        
+    getUserEntitlement: (userId: string, year: number) => 
+        apiClient.get<LeaveEntitlement>(`/leaves/admin/users/${userId}/entitlement?year=${year}`)
 };

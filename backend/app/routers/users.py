@@ -95,6 +95,39 @@ def list_users_for_sharing(
     return users
 
 
+@router.get("/managed", response_model=list[UserRead])
+def list_managed_users(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Returns users the current user can manage/view leaves for.
+    Admins get all in domain, supervisors get subordinates.
+    """
+    domain = current_user.email.split("@")[-1]
+    
+    if current_user.is_admin:
+        return (
+            db.query(models.User)
+            .filter(
+                models.User.email.like(f"%@{domain}"),
+                models.User.is_active.is_(True)
+            )
+            .order_by(models.User.full_name.asc())
+            .all()
+        )
+    
+    # Not admin, check subordinates
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.supervisor_id == current_user.id,
+            models.User.is_active.is_(True)
+        )
+        .order_by(models.User.full_name.asc())
+        .all()
+    )
+
 # --- Admin-only user management ---
 
 
@@ -109,6 +142,7 @@ def list_users(
     users = (
         db.query(models.User)
         .filter(models.User.email.like(f"%@{admin_domain}"))
+        .order_by(models.User.full_name.asc())
         .all()
     )
     return users

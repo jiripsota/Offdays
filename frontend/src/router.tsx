@@ -10,6 +10,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { ApprovalsPage } from "./pages/ApprovalsPage";
 import { SettingsPage } from "./pages/admin/SettingsPage";
 import { CalendarPage } from "./pages/CalendarPage";
+import { UserDetailAbsencePage } from "./pages/admin/UserDetailAbsencePage";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { path: "admin/users", element: <AdminUsersPage /> },
       { path: "admin/subscription", element: <AdminSubscriptionPage /> },
       { path: "admin/settings", element: <SettingsPage /> },
+      { path: "admin/team-oversight", element: <UserDetailAbsencePage /> },
       { path: "approvals", element: <ApprovalsPage /> },
       { path: "calendar", element: <CalendarPage /> },
     ],

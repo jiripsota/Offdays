@@ -31,7 +31,9 @@
     "error_desc": "Nepodařilo se uložit nastavení.",
     "confirm_title": "Jste si jisti?",
     "confirm_desc": "Tuto akci nelze vzít zpět.",
-    "confirm": "Potvrdit"
+    "confirm": "Potvrdit",
+    "holiday": "Svátek",
+    "weekend": "Víkend"
   },
   "sidebar": {
     "dashboard": "Můj přehled",
@@ -52,7 +54,9 @@
     "collapse": "Sbalit",
     "expand": "Rozbalit boční panel",
     "logout": "Odhlásit se",
-    "settings": "Nastavení"
+    "settings": "Nastavení",
+    "management_header": "MANAGEMENT",
+    "team_oversight": "Přehled týmu"
   },
   "auth": {
     "login_title": "Přihlaste se pomocí firemního Google účtu.",
@@ -79,6 +83,7 @@
       "subtitle": "Spravujte všechny uživatele v systému.",
       "name": "Jméno",
       "role": "Role",
+      "user_type": "Typ uživatele",
       "status": "Stav",
       "last_login": "Poslední přihlášení",
       "last_login_never": "Nikdy nepřihlášen",
@@ -116,9 +121,21 @@
         "limit_reached": "Limit plánu vyčerpán",
         "edit_settings": "Upravit nastavení"
       },
-      "user_type": "Typ",
       "type_employee": "Zaměstnanec",
-      "type_contractor": "Kontraktor"
+      "type_contractor": "Kontraktor",
+      "user_absence": {
+        "title": "Přehled týmu",
+        "subtitle": "Přehled dovolených a oznámení o nepřítomnosti od svého týmu.",
+        "select_user": "Vybrat uživatele",
+        "no_user_selected": "Není vybrán žádný uživatel",
+        "select_user_hint": "Vyberte prosím uživatele ze seznamu pro zobrazení jeho statistik.",
+        "records": "záznamů",
+        "no_absences_this_year": "V tomto roce nebyly zaznamenány žádné absence.",
+        "used_contractor": "Nahlášeno / Plánováno",
+        "used": "Vyčerpáno / Plánováno",
+        "total_contractor": "Počet záznamů",
+        "total": "Celkový nárok"
+      }
     }
   },
   "language": {
@@ -192,6 +209,8 @@
     "accrued_total": "Aktuální / Smluvní nárok",
     "accrued_total_desc": "Smluvní nárok: {{total}} {{unit}}",
     "accrued_not_started": "Nárok vzniká až 1. ledna",
+    "total_days": "Celkový nárok (rok)",
+    "remaining_days": "Zbývající dny",
     "new_request_btn": "Požádat o dovolenou",
     "new_request_btn_contractor": "Oznámit nepřítomnost",
     "new_request_desc": "Vyberte dny dovolené v kalendáři. Váš nadřízený žádost posoudí.",
@@ -222,15 +241,15 @@
     "approvals": "Schvalování",
     "approvals_title": "Schvalování",
     "approvals_subtitle": "Spravujte žádosti o dovolenou a oznámení nepřítomnosti od svého týmu.",
-    "pending_requests": "Čekající žádosti / oznámení",
+    "pending_requests": "Čekající žádosti",
     "no_pending": "Žádné čekající žádosti.",
     "approve": "Schválit",
     "reject": "Zamítnout",
-    "approve_reject": "Schválit / Zamítnout",
     "deny_cancel": "Zamítnout zrušení",
     "approve_cancel": "Potvrdit zrušení",
     "approved": "Schváleno",
     "rejected": "Zamítnuto",
+    "vacation": "Dovolená",
     "request_approved_desc": "Žádost byla úspěšně schválena.",
     "request_rejected_desc": "Žádost byla zamítnuta.",
     "days": "Dny",

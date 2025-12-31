@@ -1,6 +1,6 @@
 from typing import List
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, desc
@@ -20,6 +20,63 @@ from app.email import send_new_request_email, send_status_update_email
 
 router = APIRouter(prefix="/leaves", tags=["leaves"])
 
+def _get_or_create_entitlement(db: Session, user: User, year: int) -> LeaveEntitlement:
+    """Helper to get or create entitlement for a user/year."""
+    entitlement = db.scalar(
+        select(LeaveEntitlement).where(
+            LeaveEntitlement.user_id == user.id,
+            LeaveEntitlement.year == year
+        )
+    )
+    
+    now = datetime.utcnow()
+    
+    if not entitlement:
+        # Create default entitlement for that year
+        from app.models import Tenant
+        from sqlalchemy import func
+        
+        domain = user.email.split("@")[-1]
+        tenant = db.scalar(select(Tenant).where(Tenant.domain == domain))
+        if not tenant:
+            tenant = db.scalar(select(Tenant))
+        
+        total_default = float(tenant.default_vacation_days) if tenant else 20.0
+        
+        used_days = db.scalar(
+            select(func.sum(LeaveRequest.days_count))
+            .where(
+                LeaveRequest.user_id == user.id,
+                LeaveRequest.status == LeaveStatus.APPROVED,
+                func.extract('year', LeaveRequest.start_date) == year
+            )
+        ) or 0.0
+
+        entitlement = LeaveEntitlement(
+            user_id=user.id,
+            year=year,
+            total_days=total_default,
+            remaining_days=total_default - used_days
+        )
+        db.add(entitlement)
+        db.commit()
+        db.refresh(entitlement)
+    
+    # Calculate pro-rated accrual
+    if year > now.year:
+        accrued_days = 0.0
+    elif year < now.year:
+        accrued_days = entitlement.total_days
+    else:
+        start_of_year = datetime(year, 1, 1)
+        end_of_year = datetime(year, 12, 31)
+        days_in_year = (end_of_year - start_of_year).days + 1
+        days_elapsed = (now - start_of_year).days + 1
+        accrued_days = round((days_elapsed / days_in_year) * entitlement.total_days, 1)
+    
+    entitlement.accrued_days = accrued_days
+    return entitlement
+
 @router.get("/me/entitlement", response_model=LeaveEntitlementRead)
 def get_my_entitlement(
     year: int = None,
@@ -29,65 +86,8 @@ def get_my_entitlement(
     """
     Get entitlement for specific year (or current if not specified).
     """
-    now = datetime.utcnow()
-    target_year = year if year else now.year
-    
-    entitlement = db.scalar(
-        select(LeaveEntitlement).where(
-            LeaveEntitlement.user_id == current_user.id,
-            LeaveEntitlement.year == target_year
-        )
-    )
-    
-    if not entitlement:
-        # Create default entitlement for that year
-        # Fetch tenant settings to get default_vacation_days
-        from app.models import Tenant
-        domain = current_user.email.split("@")[-1]
-        tenant = db.scalar(select(Tenant).where(Tenant.domain == domain))
-        if not tenant:
-            tenant = db.scalar(select(Tenant))
-        
-        total_default = float(tenant.default_vacation_days) if tenant else 20.0
-        
-        # We need to import func from sqlalchemy
-        from sqlalchemy import func
-        used_days = db.scalar(
-            select(func.sum(LeaveRequest.days_count))
-            .where(
-                LeaveRequest.user_id == current_user.id,
-                LeaveRequest.status == LeaveStatus.APPROVED,
-                func.extract('year', LeaveRequest.start_date) == target_year
-            )
-        ) or 0.0
-
-        entitlement = LeaveEntitlement(
-            user_id=current_user.id,
-            year=target_year,
-            total_days=total_default,
-            remaining_days=total_default - used_days
-        )
-        db.add(entitlement)
-        db.commit()
-        db.refresh(entitlement)
-    
-    # Calculate pro-rated accrual
-    if target_year > now.year:
-        # Future year: 0 accrued so far
-        accrued_days = 0.0
-    elif target_year < now.year:
-        # Past year: all accrued
-        accrued_days = entitlement.total_days
-    else:
-        # Current year
-        start_of_year = datetime(target_year, 1, 1)
-        end_of_year = datetime(target_year, 12, 31)
-        days_in_year = (end_of_year - start_of_year).days + 1
-        days_elapsed = (now - start_of_year).days + 1
-        accrued_days = round((days_elapsed / days_in_year) * entitlement.total_days, 1)
-    
-    entitlement.accrued_days = accrued_days
-    return entitlement
+    target_year = year if year else datetime.utcnow().year
+    return _get_or_create_entitlement(db, current_user, target_year)
 
 @router.get("/me/requests", response_model=List[LeaveRequestRead])
 def get_my_requests(
@@ -620,3 +620,70 @@ def get_team_calendar(
     
     requests = db.scalars(query).all()
     return requests
+
+@router.get("/admin/users/{user_id}/leaves", response_model=List[LeaveRequestRead])
+def get_user_leave_history(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get leave history for a specific user.
+    Admin can see anyone in their domain.
+    Supervisor can see their subordinates.
+    """
+    target_user = db.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Permission check
+    is_admin = current_user.is_admin
+    is_supervisor = target_user.supervisor_id == current_user.id
+    
+    # Domain check for admin
+    current_domain = current_user.email.split("@")[-1]
+    target_domain = target_user.email.split("@")[-1]
+    
+    if not is_admin and not is_supervisor:
+         raise HTTPException(status_code=403, detail="Not authorized to view this user")
+         
+    if is_admin and current_domain != target_domain:
+         raise HTTPException(status_code=403, detail="Forbidden - cross-domain access")
+
+    query = (
+        select(LeaveRequest)
+        .where(LeaveRequest.user_id == user_id)
+        .order_by(LeaveRequest.start_date.desc())
+    )
+    
+    requests = db.scalars(query).all()
+    return requests
+
+@router.get("/admin/users/{user_id}/entitlement", response_model=LeaveEntitlementRead)
+def get_user_entitlement_stats(
+    user_id: UUID,
+    year: int = date.today().year,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get entitlement statistics for a specific user for a given year.
+    Admin or Supervisor only.
+    """
+    target_user = db.get(User, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Permission check (reuse logic)
+    is_admin = current_user.is_admin
+    is_supervisor = target_user.supervisor_id == current_user.id
+    current_domain = current_user.email.split("@")[-1]
+    target_domain = target_user.email.split("@")[-1]
+
+    if not is_admin and not is_supervisor:
+         raise HTTPException(status_code=403, detail="Not authorized")
+    if is_admin and current_domain != target_domain:
+         raise HTTPException(status_code=403, detail="Forbidden")
+
+    # Reuse the logic from get_my_entitlement but for a specific user
+    return _get_or_create_entitlement(db, target_user, year)

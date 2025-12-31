@@ -36,6 +36,8 @@ import { GlassCard } from "../components/ui/premium";
 import { getAvatarUrl } from "../utils/avatarUrl";
 import { Spinner } from "@/components/ui/spinner";
 
+import { isCZHoliday } from "@/utils/holidays";
+
 export function CalendarPage() {
     const { t, i18n } = useTranslation();
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -86,6 +88,10 @@ export function CalendarPage() {
         );
     }
 
+    const weekdayHeaders = i18n.language === "cs" 
+        ? ["po", "út", "st", "čt", "pá", "so", "ne"]
+        : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
     return (
         <div className="flex-1 w-full p-6 space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -122,9 +128,12 @@ export function CalendarPage() {
 
             <GlassCard className="p-1 overflow-hidden" hover={false}>
                 <div className="grid grid-cols-7 border-b border-muted/20">
-                    {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((day) => (
-                        <div key={day} className="p-4 text-center text-sm font-bold text-muted-foreground uppercase tracking-widest">
-                            {t(`common.days_full.${day}`, day.substring(0, 3))}
+                    {weekdayHeaders.map((day, i) => (
+                        <div key={day} className={cn(
+                            "p-4 text-center text-sm font-bold uppercase tracking-widest",
+                            i >= 5 ? "text-red-500/60" : "text-muted-foreground"
+                        )}>
+                            {day}
                         </div>
                     ))}
                 </div>
@@ -134,6 +143,8 @@ export function CalendarPage() {
                         const isCurrentMonth = isSameMonth(day, monthStart);
                         const isToday = isSameDay(day, new Date());
                         const isDayWeekend = isWeekend(day);
+                        const isDayHoliday = isCZHoliday(day);
+                        const isWorkingDay = !isDayWeekend && !isDayHoliday;
 
                         return (
                             <div 
@@ -142,53 +153,57 @@ export function CalendarPage() {
                                     "p-2 border-r border-b border-muted/10 transition-colors relative min-h-[120px]",
                                     !isCurrentMonth && "opacity-30 bg-muted/5",
                                     isToday && "bg-primary/5",
-                                    isDayWeekend && isCurrentMonth && "bg-muted/10",
+                                    (isDayWeekend || isDayHoliday) && isCurrentMonth && "bg-muted/10",
                                     idx % 7 === 6 && "border-r-0"
                                 )}
                             >
                                 <div className="flex justify-between items-start mb-2">
                                     <span className={cn(
                                         "text-sm font-semibold",
-                                        isToday ? "text-primary px-2 py-0.5 bg-primary/20 rounded-full" : "text-muted-foreground"
+                                        isToday ? "text-primary px-2 py-0.5 bg-primary/20 rounded-full" : 
+                                        (isDayWeekend || isDayHoliday) ? "text-red-500/70" : "text-muted-foreground"
                                     )}>
                                         {format(day, "d")}
+                                        {isDayHoliday && <span className="ml-1 text-[10px] font-normal opacity-70 hidden sm:inline">{t("common.holiday", "Holiday")}</span>}
                                     </span>
                                 </div>
                                 
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                    <TooltipProvider>
-                                        <div className="flex -space-x-3 hover:space-x-1 transition-all duration-300">
-                                            {dayRequests.map((req, ridx) => (
-                                                <Tooltip key={req.id + idx}>
-                                                    <TooltipTrigger asChild>
-                                                        <div 
-                                                            className="relative"
-                                                            style={{ zIndex: 10 + ridx }}
-                                                        >
-                                                            <Avatar className="h-8 w-8 border-2 border-background shadow-sm hover:scale-110 transition-transform cursor-pointer">
-                                                                <AvatarImage src={getAvatarUrl(req.user?.picture)} />
-                                                                <AvatarFallback className="bg-slate-800 text-primary text-[10px] font-bold">
-                                                                    {getInitials(req.user?.full_name, req.user?.email)}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top">
-                                                        <div className="text-xs font-semibold">
-                                                            {req.user?.full_name || req.user?.email}
-                                                        </div>
-                                                        <div className="text-[10px] opacity-70">
-                                                            {req.note || t("leaves.vacation", "Vacation")}
-                                                        </div>
-                                                        <div className="text-[10px] font-medium text-primary/80 mt-1 uppercase tracking-tighter">
-                                                            {format(parseISO(req.start_date), "d. M. yyyy")} – {format(parseISO(req.end_date), "d. M. yyyy")}
-                                                        </div>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            ))}
-                                        </div>
-                                    </TooltipProvider>
-                                </div>
+                                {isWorkingDay && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        <TooltipProvider>
+                                            <div className="flex -space-x-3 hover:space-x-1 transition-all duration-300">
+                                                {dayRequests.map((req, ridx) => (
+                                                    <Tooltip key={req.id + idx}>
+                                                        <TooltipTrigger asChild>
+                                                            <div 
+                                                                className="relative"
+                                                                style={{ zIndex: 10 + ridx }}
+                                                            >
+                                                                <Avatar className="h-8 w-8 border-2 border-background shadow-sm hover:scale-110 transition-transform cursor-pointer">
+                                                                    <AvatarImage src={getAvatarUrl(req.user?.picture)} />
+                                                                    <AvatarFallback className="bg-slate-800 text-primary text-[10px] font-bold">
+                                                                        {getInitials(req.user?.full_name, req.user?.email)}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top">
+                                                            <div className="text-xs font-semibold">
+                                                                {req.user?.full_name || req.user?.email}
+                                                            </div>
+                                                            <div className="text-[10px] opacity-70">
+                                                                {req.note || t("leaves.vacation", "Vacation")}
+                                                            </div>
+                                                            <div className="text-[10px] font-medium text-primary/80 mt-1 uppercase tracking-tighter">
+                                                                {format(parseISO(req.start_date), "d. M. yyyy")} – {format(parseISO(req.end_date), "d. M. yyyy")}
+                                                            </div>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                ))}
+                                            </div>
+                                        </TooltipProvider>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}

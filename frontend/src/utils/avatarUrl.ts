@@ -15,3 +15,19 @@ export function getAvatarUrl(picture?: string | null): string | undefined {
   // Otherwise return as-is (external URL)
   return picture;
 }
+
+/**
+ * Returns user initials from full name or email (fallback).
+ */
+export function getInitials(name?: string | null, email?: string): string {
+  if (name) {
+    return name
+      .trim()
+      .split(/\s+/)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }
+  return email?.slice(0, 2).toUpperCase() || "??";
+}

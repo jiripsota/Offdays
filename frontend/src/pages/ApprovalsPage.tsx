@@ -96,8 +96,14 @@ export function ApprovalsPage() {
                 </CardHeader>
                 <CardContent className="p-0">
                     {requests?.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                            {t("leaves.no_pending", "No pending requests.")}
+                        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                            <div className="p-6 bg-muted/20 rounded-full">
+                                <CheckCircle className="h-12 w-12 text-muted-foreground opacity-20" />
+                            </div>
+                            <div className="max-w-sm">
+                                <h3 className="text-lg font-semibold">{t("leaves.no_pending", "No pending requests")}</h3>
+                                <p className="text-muted-foreground">{t("leaves.no_pending_desc", "You're all caught up! There are no requests waiting for your approval.")}</p>
+                            </div>
                         </div>
                     ) : (
                         <Table>

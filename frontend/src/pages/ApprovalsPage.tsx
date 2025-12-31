@@ -24,6 +24,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ViewModeToggle } from "@/components/admin/ViewModeToggle";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usersApi } from "@/api/users";
+import { useMemo } from "react";
 
 const fetchApprovals = async () => {
     const token = localStorage.getItem("token");
@@ -38,13 +42,33 @@ export function ApprovalsPage() {
     const { t, i18n } = useTranslation();
     const { toast } = useToast();
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<"all" | "team">("all");
 
     const { formatDateRange } = useDateFormatter();
+
+    const { data: currentUser } = useCurrentUser();
 
     const { data: requests, isLoading, refetch } = useQuery({
         queryKey: ["approvals"],
         queryFn: fetchApprovals
     });
+
+    const { data: managedUsers } = useQuery({
+        queryKey: ["managedUsers"],
+        queryFn: () => usersApi.listManaged(),
+        enabled: !!currentUser?.is_admin
+    });
+
+    const filteredRequests = useMemo(() => {
+        if (!requests) return [];
+        if (viewMode === "team" && currentUser && managedUsers) {
+             const teamUserIds = managedUsers
+                .filter(u => u.supervisor_id === currentUser.id)
+                .map(u => u.id);
+            return requests.filter((r: any) => teamUserIds.includes(r.user?.id));
+        }
+        return requests;
+    }, [requests, viewMode, currentUser, managedUsers]);
 
     const handleAction = async (id: string, action: "approve" | "reject") => {
         setActionLoading(id);
@@ -80,14 +104,22 @@ export function ApprovalsPage() {
 
     return (
         <div className="flex-1 w-full p-6 space-y-8">
-            <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                    <CheckSquare className="h-8 w-8 text-primary" />
+            <div className="flex items-center gap-4 justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-xl">
+                        <CheckSquare className="h-8 w-8 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">{t("leaves.approvals_title", "Approvals")}</h1>
+                        <p className="text-muted-foreground">{t("leaves.approvals_subtitle", "Manage leave requests and absence notifications from your team.")}</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{t("leaves.approvals_title", "Approvals")}</h1>
-                    <p className="text-muted-foreground">{t("leaves.approvals_subtitle", "Manage leave requests and absence notifications from your team.")}</p>
-                </div>
+                 {currentUser?.is_admin && managedUsers?.some(u => u.supervisor_id === currentUser.id) && (
+                    <ViewModeToggle 
+                        mode={viewMode} 
+                        onChange={setViewMode} 
+                    />
+                )}
             </div>
 
             <Card>
@@ -95,7 +127,7 @@ export function ApprovalsPage() {
                      <CardTitle>{t("leaves.pending_requests", "Pending Requests / Notifications")}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    {requests?.length === 0 ? (
+                    {filteredRequests.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                             <div className="p-6 bg-muted/20 rounded-full">
                                 <CheckCircle className="h-12 w-12 text-muted-foreground opacity-20" />
@@ -118,7 +150,7 @@ export function ApprovalsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {requests?.map((req: any) => (
+                                {filteredRequests.map((req: any) => (
                                     <TableRow key={req.id}>
                                         <TableCell>
                                             <div className="flex items-center gap-3">

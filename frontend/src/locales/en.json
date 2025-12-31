@@ -80,6 +80,10 @@
     "back_home": "Back to home"
   },
   "admin": {
+    "view_mode": {
+      "all": "All",
+      "team": "My Team"
+    },
     "users": {
       "title": "User Management",
       "subtitle": "Manage all users in the system.",
@@ -100,6 +104,9 @@
       "edit_user": "Edit User",
       "edit_user_desc": "Manage supervisor and leave entitlement.",
       "supervisor": "Supervisor",
+      "employees": "Employees",
+      "contractors": "Contractors",
+      "name": "Name",
       "update_success": "User updated successfully",
       "update_failed": "Failed to update user",
       "add_google": "Add from Google Workspace",
@@ -131,6 +138,7 @@
         "select_user": "Select User",
         "no_user_selected": "No user selected",
         "select_user_hint": "Please select a user from the list to view their statistics.",
+        "team_view": "Whole Team",
         "records": "records",
         "no_absences_this_year": "No absences recorded for this year.",
         "used_contractor": "Reported / Planned",
@@ -204,6 +212,7 @@
     "used_remaining_desc": "{{remaining}} {{unit}} remaining",
     "used_desc_contractor": "Days you are not available",
     "used_this_month_contractor": "{{count}} {{unit}} this month",
+    "used_this_month_short": "This Month",
     "total": "Full Allowance",
     "total_desc": "Contractual entitlement",
     "accrued": "Accrued So Far",

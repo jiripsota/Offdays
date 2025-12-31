@@ -52,6 +52,9 @@ import {
 } from "@/components/ui/tooltip";
 
 import { isCZHoliday } from "@/utils/holidays";
+import { TeamOverviewTable } from "@/components/admin/TeamOverviewTable";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ViewModeToggle } from "@/components/admin/ViewModeToggle";
 
 const getCzechDaysLabel = (count: number) => {
     if (count === 1) return "den";
@@ -63,27 +66,38 @@ const getCzechDaysLabel = (count: number) => {
 export function UserDetailAbsencePage() {
     const { t, i18n } = useTranslation();
     const { formatDateRange } = useDateFormatter();
-    const [selectedUserId, setSelectedUserId] = useState<string>("");
+    const [selectedUserId, setSelectedUserId] = useState<string>("all");
+    const [viewMode, setViewMode] = useState<"all" | "team">("all");
     const currentYear = new Date().getFullYear();
     const nextYear = currentYear + 1;
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const locale = i18n.language === "cs" ? cs : enUS;
+
+    const { data: currentUser } = useCurrentUser();
 
     const { data: managedUsers, isLoading: loadingUsers } = useQuery({
         queryKey: ["managedUsers"],
         queryFn: () => usersApi.listManaged()
     });
 
+    const filteredUsers = useMemo(() => {
+        if (!managedUsers) return [];
+        if (viewMode === "team" && currentUser) {
+            return managedUsers.filter(u => u.supervisor_id === currentUser.id);
+        }
+        return managedUsers;
+    }, [managedUsers, viewMode, currentUser]);
+
     const { data: leaveHistory, isLoading: loadingLeaves } = useQuery({
         queryKey: ["userLeaves", selectedUserId],
-        queryFn: () => selectedUserId ? leavesApi.getUserLeaves(selectedUserId) : Promise.resolve([]),
-        enabled: !!selectedUserId
+        queryFn: () => (selectedUserId && selectedUserId !== "all") ? leavesApi.getUserLeaves(selectedUserId) : Promise.resolve([]),
+        enabled: !!selectedUserId && selectedUserId !== "all"
     });
 
     const { data: entitlement, isLoading: loadingEntitlement } = useQuery({
         queryKey: ["userEntitlement", selectedUserId, selectedYear],
-        queryFn: () => selectedUserId ? leavesApi.getUserEntitlement(selectedUserId, selectedYear) : Promise.resolve(null),
-        enabled: !!selectedUserId
+        queryFn: () => (selectedUserId && selectedUserId !== "all") ? leavesApi.getUserEntitlement(selectedUserId, selectedYear) : Promise.resolve(null),
+        enabled: !!selectedUserId && selectedUserId !== "all"
     });
 
     const usedOrPlannedDays = useMemo(() => {
@@ -139,28 +153,24 @@ export function UserDetailAbsencePage() {
             if (!['approved', 'pending', 'cancel_pending'].includes(req.status)) {
                 return false;
             }
-            
-            const start = parseISO(req.start_date);
-            const end = parseISO(req.end_date);
+
+            const reqStart = startOfDay(parseISO(req.start_date));
+            const reqEnd = startOfDay(parseISO(req.end_date));
             const monthStart = startOfMonth(month);
             const monthEnd = endOfMonth(month);
-            
-            // Filter by selected year - only show requests that have days in the selected year
-            const yearStart = startOfYear(new Date(selectedYear, 0, 1));
-            const yearEnd = endOfYear(yearStart);
-            
-            // Request must overlap with both the month AND the selected year
-            return (start <= monthEnd && end >= monthStart) && 
-                   (start <= yearEnd && end >= yearStart);
+
+            // Check if request overlaps with month
+            return (reqStart <= monthEnd && reqEnd >= monthStart);
         });
     };
 
-    if (loadingUsers) return <div className="flex h-full items-center justify-center"><Spinner size="xl" /></div>;
+    if (loadingUsers) {
+        return <div className="flex h-full items-center justify-center"><Spinner /></div>;
+    }
 
     return (
         <div className="flex-1 w-full p-6 space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-primary/10 rounded-xl">
                         <Users className="h-8 w-8 text-primary" />
@@ -176,12 +186,25 @@ export function UserDetailAbsencePage() {
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
+                    {currentUser?.is_admin && managedUsers?.some(u => u.supervisor_id === currentUser.id) && (
+                        <ViewModeToggle 
+                            mode={viewMode} 
+                            onChange={(m) => {
+                                setViewMode(m);
+                                setSelectedUserId("all");
+                            }} 
+                        />
+                    )}
+
                     <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                         <SelectTrigger className="w-full md:w-[280px] bg-background/50 backdrop-blur-sm border-muted/20">
                             <SelectValue placeholder={t("admin.users.user_absence.select_user", "Select User")} />
                         </SelectTrigger>
                         <SelectContent className="max-h-[300px]">
-                            {managedUsers?.map(user => (
+                            <SelectItem value="all">
+                                <span className="font-medium">{t("admin.users.user_absence.team_view", "Celý tým")}</span>
+                            </SelectItem>
+                            {filteredUsers.map(user => (
                                 <SelectItem key={user.id} value={user.id}>
                                     <div className="flex items-center gap-2">
                                         <Avatar className="h-5 w-5 shrink-0">
@@ -218,16 +241,12 @@ export function UserDetailAbsencePage() {
                 </div>
             </div>
 
-            {!selectedUserId ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                    <div className="p-6 bg-muted/20 rounded-full">
-                        <Search className="h-12 w-12 text-muted-foreground opacity-20" />
-                    </div>
-                    <div className="max-w-sm">
-                        <h3 className="text-lg font-semibold">{t("admin.users.user_absence.no_user_selected", "No user selected")}</h3>
-                        <p className="text-muted-foreground">{t("admin.users.user_absence.select_user_hint", "Please select an employee from the list to view their absence details and statistics.")}</p>
-                    </div>
-                </div>
+            {selectedUserId === "all" ? (
+                <TeamOverviewTable 
+                    users={filteredUsers} 
+                    year={selectedYear}
+                    onUserSelect={setSelectedUserId}
+                />
             ) : (
                 <>
                     {/* Stats Grid - Mirrored from Dashboard */}

@@ -174,6 +174,9 @@ export function AdminUsersPage() {
                 {t("admin.users.user_type")}
               </TableHead>
               <TableHead className="px-4 py-3 h-11 font-medium text-muted-foreground">
+                {t("admin.users.supervisor")}
+              </TableHead>
+              <TableHead className="px-4 py-3 h-11 font-medium text-muted-foreground">
                 {t("admin.users.status")}
               </TableHead>
               <TableHead className="px-4 py-3 h-11 font-medium text-muted-foreground">
@@ -199,6 +202,7 @@ export function AdminUsersPage() {
                     <TableCell className="px-4 py-3"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
                     <TableCell className="px-4 py-3"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
                     <TableCell className="px-4 py-3"><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                    <TableCell className="px-4 py-3"><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell className="px-4 py-3"><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell className="px-4 py-3 text-right"><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
                   </TableRow>
@@ -286,6 +290,22 @@ export function AdminUsersPage() {
                           {t("admin.users.type_employee")}
                         </PremiumBadge>
                       )}
+                    </TableCell>
+
+                    <TableCell className="px-4 py-3 text-sm">
+                      {(() => {
+                        if (!user.supervisor_id) return <span className="text-muted-foreground/50">-</span>;
+                        const supervisor = users?.find(u => u.id === user.supervisor_id);
+                        return supervisor ? (
+                          <div className="flex items-center gap-2">
+                             <Avatar className="h-5 w-5">
+                                <AvatarImage src={getAvatarUrl(supervisor.picture)} />
+                                <AvatarFallback className="text-[8px]">{getInitials(supervisor.full_name, supervisor.email)}</AvatarFallback>
+                             </Avatar>
+                             <span>{supervisor.full_name || supervisor.email}</span>
+                          </div>
+                        ) : <span className="text-muted-foreground/50">-</span>;
+                      })()}
                     </TableCell>
 
                     <TableCell className="px-4 py-3">

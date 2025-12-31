@@ -56,6 +56,7 @@ class UserRead(UserBase, ORMModel):
     created_at: datetime
     picture: Optional[str] = None
     last_login: Optional[datetime] = None
+    supervisor_id: Optional[UUID] = None
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None

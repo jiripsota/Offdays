@@ -78,6 +78,10 @@
     "back_home": "Zpět na domovskou stránku"
   },
   "admin": {
+    "view_mode": {
+      "all": "Všichni",
+      "team": "Můj tým"
+    },
     "users": {
       "title": "Správa uživatelů",
       "subtitle": "Spravujte všechny uživatele v systému.",
@@ -98,6 +102,9 @@
       "edit_user": "Upravit uživatele",
       "edit_user_desc": "Spravujte nadřízeného a nárok na dovolenou.",
       "supervisor": "Nadřízený",
+      "employees": "Zaměstnanci",
+      "contractors": "Kontraktoři",
+      "name": "Jméno",
       "update_success": "Uživatel byl úspěšně aktualizován.",
       "update_failed": "Nepodařilo se aktualizovat uživatele.",
       "add_google": "Přidat z Google Workspace",
@@ -129,6 +136,7 @@
         "select_user": "Vybrat uživatele",
         "no_user_selected": "Není vybrán žádný uživatel",
         "select_user_hint": "Vyberte prosím uživatele ze seznamu pro zobrazení jeho statistik.",
+        "team_view": "Celý tým",
         "records": "záznamů",
         "no_absences_this_year": "V tomto roce nebyly zaznamenány žádné absence.",
         "used_contractor": "Nahlášeno / Plánováno",
@@ -202,6 +210,7 @@
     "used_remaining_desc": "{{remaining}} {{unit}} zbývá",
     "used_desc_contractor": "Dny, kdy nejste k dispozici",
     "used_this_month_contractor": "{{count}} {{unit}} tento měsíc",
+    "used_this_month_short": "Tento měsíc",
     "total": "Celkový nárok",
     "total_desc": "Smluvní nárok na rok",
     "accrued": "Aktuální nárok",

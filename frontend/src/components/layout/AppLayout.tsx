@@ -519,7 +519,7 @@ export function AppLayout() {
           </div>
           <main className="flex-1 overflow-auto">
              {showBillingWarning && !location.pathname.includes("/admin/subscription") && (
-              <div className="mb-6">
+              <div className="px-6 pt-6">
                 <Alert variant={isOverLimit ? "destructive" : "default"} className={`${isOverLimit ? "border-red-500" : "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20"}`}>
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>{t("billing.alerts.upgrade_needed")}</AlertTitle>

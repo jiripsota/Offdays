@@ -216,14 +216,18 @@ def update_user(
     prev_is_admin = user.is_admin
     prev_is_active = user.is_active
 
-    if payload.full_name is not None:
-        user.full_name = payload.full_name
-    if payload.is_admin is not None:
-        user.is_admin = payload.is_admin
+    update_data = payload.model_dump(exclude_unset=True)
+
+    if "full_name" in update_data:
+        user.full_name = update_data["full_name"]
     
-    if payload.is_active is not None:
+    if "is_admin" in update_data:
+        user.is_admin = update_data["is_admin"]
+    
+    if "is_active" in update_data:
+        new_active = update_data["is_active"]
         # If activating a user, check limits
-        if payload.is_active is True and user.is_active is False:
+        if new_active is True and user.is_active is False:
              sub_manager = SubscriptionManager(db)
              tenant = db.query(models.Tenant).filter_by(domain=admin_domain).first()
              if not tenant or not sub_manager.check_usage_limits(tenant.id, adding_users=1):
@@ -231,20 +235,22 @@ def update_user(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
                     detail="Organization user limit reached. Please upgrade your plan.",
                 )
-        user.is_active = payload.is_active
+        user.is_active = new_active
 
-    if payload.supervisor_id is not None:
-        # Validate supervisor exists
-        supervisor = db.get(models.User, payload.supervisor_id)
-        if not supervisor:
-             raise HTTPException(status_code=400, detail="Supervisor not found")
-        # Prevent circular or self supervision?
-        if supervisor.id == user.id:
-            raise HTTPException(status_code=400, detail="User cannot be their own supervisor")
-        user.supervisor_id = payload.supervisor_id
+    if "supervisor_id" in update_data:
+        sup_id = update_data["supervisor_id"]
+        if sup_id is not None:
+            # Validate supervisor exists
+            supervisor = db.get(models.User, sup_id)
+            if not supervisor:
+                 raise HTTPException(status_code=400, detail="Supervisor not found")
+            # Prevent circular or self supervision?
+            if supervisor.id == user.id:
+                raise HTTPException(status_code=400, detail="User cannot be their own supervisor")
+        user.supervisor_id = sup_id
 
-    if payload.user_type is not None:
-        user.user_type = payload.user_type
+    if "user_type" in update_data:
+        user.user_type = update_data["user_type"]
 
     db.commit()
     db.refresh(user)
@@ -255,5 +261,5 @@ def update_user(
     # Audit: user updated (especially admin/active flags)
 
 
-    db.commit()
+    # db.commit() - already committed
     return user

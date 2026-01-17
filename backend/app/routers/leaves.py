@@ -358,14 +358,15 @@ def get_pending_approvals(
     """
     Get requests waiting for my approval.
     """
-    query = select(LeaveRequest).where(
+    admin_domain = current_user.email.split("@")[-1]
+    query = select(LeaveRequest).join(User).where(
+        User.email.like(f"%@{admin_domain}"),
         (LeaveRequest.status == LeaveStatus.PENDING) | 
         (LeaveRequest.status == LeaveStatus.CANCEL_PENDING)
     )
     
     if not current_user.is_admin:
-        subordinates = select(User.id).where(User.supervisor_id == current_user.id)
-        query = query.where(LeaveRequest.user_id.in_(subordinates))
+        query = query.where(User.supervisor_id == current_user.id)
         
     requests = db.scalars(query.options(joinedload(LeaveRequest.user)).order_by(desc(LeaveRequest.created_at))).all()
     return requests
@@ -380,10 +381,17 @@ async def approve_request(
     Approve a request or a cancellation request.
     """
     leave_request = db.scalar(select(LeaveRequest).where(LeaveRequest.id == request_id))
-    if not leave_request:
-        raise HTTPException(status_code=404, detail="Request not found")
-        
     requester = db.get(User, leave_request.user_id)
+    if not requester:
+        raise HTTPException(status_code=404, detail="Requester not found")
+
+    # Domain Cross-Check (IDOR Protection)
+    admin_domain = current_user.email.split("@")[-1]
+    requester_domain = requester.email.split("@")[-1]
+    
+    if admin_domain != requester_domain:
+        raise HTTPException(status_code=403, detail="Forbidden - cross-domain authorization attempt")
+
     if not current_user.is_admin and requester.supervisor_id != current_user.id:
          raise HTTPException(status_code=403, detail="Not authorized")
 
@@ -529,10 +537,17 @@ async def reject_request(
     current_user: User = Depends(get_current_user)
 ):
     leave_request = db.scalar(select(LeaveRequest).where(LeaveRequest.id == request_id))
-    if not leave_request:
-        raise HTTPException(status_code=404, detail="Request not found")
-
     requester = db.get(User, leave_request.user_id)
+    if not requester:
+        raise HTTPException(status_code=404, detail="Requester not found")
+
+    # Domain Cross-Check (IDOR Protection)
+    admin_domain = current_user.email.split("@")[-1]
+    requester_domain = requester.email.split("@")[-1]
+
+    if admin_domain != requester_domain:
+        raise HTTPException(status_code=403, detail="Forbidden - cross-domain authorization attempt")
+
     if not current_user.is_admin and requester.supervisor_id != current_user.id:
          raise HTTPException(status_code=403, detail="Not authorized")
 

@@ -23,10 +23,6 @@ def get_my_tenant(
     tenant = db.scalar(select(Tenant).where(Tenant.domain == domain))
     
     if not tenant:
-        # Fallback to first available tenant if domain doesn't match
-        tenant = db.scalar(select(Tenant))
-        
-    if not tenant:
         raise HTTPException(status_code=404, detail="Tenant settings not found")
         
     # Read service account email from key file
@@ -61,7 +57,7 @@ def update_my_tenant(
     tenant = db.scalar(select(Tenant).where(Tenant.domain == domain))
     
     if not tenant:
-        tenant = db.scalar(select(Tenant))
+        raise HTTPException(status_code=404, detail="Tenant settings not found")
         
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant settings not found")
@@ -138,8 +134,12 @@ async def sync_all_to_shared_calendar(
     from app.google_api import get_service_account_token, create_calendar_event
     from datetime import timedelta
 
-    # Get ALL requests to ensure we can also cleanup ones that shouldn't be in the shared calendar
-    all_requests = db.scalars(select(LeaveRequest)).all()
+    # Get ONLY requests for THIS tenant's domain
+    all_requests = db.scalars(
+        select(LeaveRequest)
+        .join(User)
+        .where(User.email.like(f"%@{tenant.domain}"))
+    ).all()
     
     sync_count = 0
     cleanup_count = 0

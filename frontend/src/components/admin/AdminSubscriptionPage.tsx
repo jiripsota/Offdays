@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Progress } from "../ui/progress";
 import { Badge } from "../ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import { CreditCard, AlertCircle, RefreshCw } from "lucide-react";
+import { CreditCard, AlertCircle } from "lucide-react";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { Separator } from "../ui/separator";
 import { Spinner } from "../ui/spinner";
@@ -17,7 +17,6 @@ export function AdminSubscriptionPage() {
   const { t, i18n } = useTranslation();
   const [status, setStatus] = useState<BillingStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     loadStatus();
@@ -34,17 +33,7 @@ export function AdminSubscriptionPage() {
     }
   };
 
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      await syncSubscription();
-      await loadStatus();
-    } catch (err) {
-      console.error("Sync failed", err);
-    } finally {
-      setSyncing(false);
-    }
-  };
+
 
   // Determine locale for date-fns
   const { formatDate } = useDateFormatter();
@@ -160,12 +149,7 @@ export function AdminSubscriptionPage() {
                         )}
                     </div>
 
-                    <div className="pt-4">
-                        <Button variant="outline" onClick={handleSync} disabled={syncing}>
-                            <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-                            {t("billing.sync")}
-                        </Button>
-                    </div>
+
                 </>
             )}
           </CardContent>

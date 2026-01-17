@@ -23,6 +23,12 @@ def get_db():
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> models.User:
     token = request.cookies.get("access_token")
     if not token:
+        # Fallback to Authorization header
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.replace("Bearer ", "")
+            
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -64,6 +70,12 @@ def get_current_tenant(
     current_user: models.User = Depends(get_current_user)
 ) -> models.Tenant:
     token = request.cookies.get("access_token")
+    if not token:
+        # Fallback to Authorization header
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.replace("Bearer ", "")
+            
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

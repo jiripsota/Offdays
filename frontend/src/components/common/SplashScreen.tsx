@@ -4,17 +4,20 @@ import { motion } from "framer-motion";
 export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
   const [textVisible, setTextVisible] = useState(false);
 
-  // Colors
-  const teal = "#0ECDBF"; 
+  // Colors based on theme
+  const blue = "#4F8CFF"; 
+  const teal = "#38D9D9";
+  const yellow = "#F6E05E";
+  const green = "#22C55E";
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setTextVisible(true);
-    }, 1200);
+    }, 1500);
 
     const completeTimer = setTimeout(() => {
       onComplete?.();
-    }, 2800); // Slightly increased to let the animation breathe
+    }, 3200); 
 
     return () => {
       clearTimeout(timer);
@@ -22,150 +25,160 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
     };
   }, [onComplete]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
+  const sunVariants = {
+    hidden: { scale: 0, opacity: 0, y: 20 },
     visible: { 
-      opacity: 1,
+      scale: 1, 
+      opacity: 1, 
+      y: 0,
       transition: { 
-        staggerChildren: 0.15,
-        delayChildren: 0.2
+        duration: 1.2,
+        ease: "easeOut",
+        delay: 0.2
       }
     }
   };
 
-  const pathVariants = {
+  const palmVariants = {
+    hidden: { pathLength: 0, opacity: 0 },
+    visible: { 
+      pathLength: 1, 
+      opacity: 1,
+      transition: { 
+        duration: 1.5,
+        ease: "easeInOut",
+        delay: 0.6
+      }
+    }
+  };
+
+  const waveVariants = {
     hidden: { pathLength: 0, opacity: 0 },
     visible: { 
       pathLength: 1, 
       opacity: 1,
       transition: { 
         duration: 1,
-        ease: "easeInOut" 
+        ease: "easeInOut",
+        delay: 1.2
       }
     }
-  };
-  
-  const checkmarkVariants = {
-    hidden: { pathLength: 0, opacity: 0, scale: 0.8 },
-    visible: { 
-      pathLength: 1, 
-      opacity: 1, 
-      scale: 1,
-      transition: { 
-        duration: 0.5, 
-        ease: "backOut",
-        delay: 1.2 // Wait for blocks 
-      }
-    }
-  };
-
-  const blockVariants = {
-    hidden: { opacity: 0, scale: 0.5 },
-    visible: (i: number) => ({ 
-      opacity: 0.4, // Keep them subtle
-      scale: 1,
-      transition: { 
-        duration: 0.4,
-        delay: 0.5 + i * 0.05,
-        ease: "easeOut"
-      }
-    })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background transition-colors duration-300">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background transition-colors duration-300 overflow-hidden">
       
-      <div className="relative w-48 h-48 flex items-center justify-center">
+      {/* Background Glow */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.15 }}
+        transition={{ duration: 2 }}
+        className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent dark:from-primary/20"
+      />
+
+      <div className="relative w-64 h-64 flex items-center justify-center">
         <motion.svg
-          width="160"
-          height="160"
+          width="200"
+          height="200"
           viewBox="0 0 100 100"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="overflow-visible"
         >
-          {/* Calendar Body */}
-          <motion.path 
-            d="M80 88H20C14.4772 88 10 83.5228 10 78V28C10 22.4772 14.4772 18 20 18H80C85.5228 18 90 22.4772 90 28V78C90 83.5228 85.5228 88 80 88Z"
-            stroke={teal}
-            strokeWidth="6"
-            fill="transparent"
-            variants={pathVariants}
-          />
-          
-          {/* Top Line inside calendar */}
-          <motion.path 
-            d="M10 40H90"
-            stroke={teal}
-            strokeWidth="4" 
-            fill="transparent"
-            variants={pathVariants} 
+          {/* Sun */}
+          <motion.circle
+            cx="70"
+            cy="30"
+            r="12"
+            fill={yellow}
+            variants={sunVariants}
+            initial="hidden"
+            animate="visible"
+            className="drop-shadow-[0_0_15px_rgba(246,224,94,0.5)]"
           />
 
-          {/* Bindings / Rings */}
-          <motion.path 
-             d="M30 12V24"
-             stroke={teal}
-             strokeWidth="6"
-             variants={pathVariants}
-          />
-          <motion.path 
-             d="M70 12V24"
-             stroke={teal}
-             strokeWidth="6"
-             variants={pathVariants}
+          {/* Palm Tree Trunk */}
+          <motion.path
+            d="M30 85 C32 70 35 55 35 40"
+            stroke="#8B4513"
+            strokeWidth="3"
+            strokeLinecap="round"
+            variants={palmVariants}
+            initial="hidden"
+            animate="visible"
           />
 
-          {/* Calendar Grid "Blocks" */}
-          {[0, 1, 2, 3].map((col) => 
-            [0, 1, 2].map((row) => (
-              <motion.rect
-                key={`${col}-${row}`}
-                x={24 + col * 15}
-                y={48 + row * 12}
-                width="8"
-                height="6"
-                rx="1.5"
-                fill={teal}
-                variants={blockVariants}
-                custom={col + row * 4}
-              />
-            ))
-          )}
+          {/* Palm Leaves */}
+          <motion.path
+            d="M35 40 C45 35 55 38 60 45"
+            stroke={green}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            variants={palmVariants}
+            initial="hidden"
+            animate="visible"
+          />
+          <motion.path
+            d="M35 40 C40 30 50 28 58 32"
+            stroke={green}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            variants={palmVariants}
+            initial="hidden"
+            animate="visible"
+          />
+          <motion.path
+            d="M35 40 C25 35 15 38 10 45"
+            stroke={green}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            variants={palmVariants}
+            initial="hidden"
+            animate="visible"
+          />
+          <motion.path
+            d="M35 40 C30 30 20 28 12 32"
+            stroke={green}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            variants={palmVariants}
+            initial="hidden"
+            animate="visible"
+          />
 
-          {/* Checkmark */}
-          <motion.path 
-            d="M35 60 L50 72 L75 48"
-            stroke={teal}
-            strokeWidth="8"
-            fill="transparent"
-            variants={checkmarkVariants}
+          {/* Sea / Waves */}
+          <motion.path
+            d="M10 85 Q30 78 50 85 T90 85"
+            stroke={blue}
+            strokeWidth="4"
+            strokeLinecap="round"
+            variants={waveVariants}
+            initial="hidden"
+            animate="visible"
+          />
+          <motion.path
+            d="M20 92 Q40 85 60 92 T100 92"
+            stroke={blue}
+            strokeWidth="3"
+            opacity="0.6"
+            strokeLinecap="round"
+            variants={waveVariants}
+            initial="hidden"
+            animate="visible"
           />
         </motion.svg>
       </div>
 
       {/* Text Reveal */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={textVisible ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="mt-1"
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="mt-0"
       >
-         <h1 className="text-4xl font-bold tracking-wider">
-            {/* Off - Standard Text Color (Dark Blue / White in Dark Mode? Or Teal in Dark Mode based on user instruction? 
-                User said: "Dark Mode: Off (White), days (Teal)" from my reasoning.
-                Let's use `text-foreground` which handles standard text color automatically (Dark in Light mode, White in Dark mode).
-                Wait, user had specific hex before. Let's stick closer to the "Off" matches "Vault" instruction.
-                Vaul was: `text-[#0B223A] dark:text-[#0ECDBF]`
-                But if we follow "days is primary", then Off should probably be neutral in dark mode unless we want teal-teal.
-                Actually, let's stick to the cleanest interpretation:
-                Off: Neutral (Foreground)
-                days: Primary (Teal)
-            */}
-             <span className="text-[#0B223A] dark:text-white">Off</span>
-            <span className="text-[#0ECDBF]">days</span>
+         <h1 className="text-5xl font-black tracking-tighter">
+             <span className="text-foreground">Off</span>
+            <span className="text-primary font-bold">days</span>
           </h1>
       </motion.div>
     </div>

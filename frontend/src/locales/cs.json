@@ -64,12 +64,12 @@
     "login_failed": "Nepodařilo se zahájit přihlášení přes Google.",
     "access_denied": "Přístup byl odepřen. Přihlašování jste zrušili.",
     "missing_code": "Přihlášení selhalo. Chybí autorizační kód.",
-    "hero_title": "Chytrá správa dovolené pro moderní týmy.",
-    "hero_subtitle": "Offdays se plně integruje s Google Workspace a usnadňuje správu dovolených, nemocenských a schvalování.",
-    "footer": "Běží na platformě Offdays",
+    "hero_title": "Užívejte si volno, zbytek nechte na nás.",
+    "hero_subtitle": "Přehledná správa dovolených, nemocenských a schvalování v jedné aplikaci, plně integrované s vaším Google Workspace.",
+    "footer": "Běží na HR platformě Offdays",
     "feature_security": "Integrace s Google Workspace",
-    "feature_encryption": "Chytré schvalovací procesy",
-    "login_subtitle": "Přihlaste se pro správu své dovolené",
+    "feature_encryption": "Správa týmové absence",
+    "login_subtitle": "Přihlaste se ke svému Offdays účtu",
     "legal_agreement": "Přihlášením souhlasíte s našimi <terms>Smluvními podmínkami</terms> a <privacy>Zásadami ochrany osobních údajů</privacy>."
   },
   "not_found": {
@@ -158,7 +158,6 @@
     "trial_ends": "Zkušební verze končí {{date}}",
     "seats": "Místa",
     "seats_detail": "{{used}} z {{limit}} míst využito",
-    "sync": "Synchronizovat s Marketplace",
     "growth_shield_limit": "Growth Shield tvrdý limit: {{limit}} uživatelů",
     "manage_subscription": "Spravovat předplatné",
     "status_types": {
@@ -180,8 +179,7 @@
       "MEDIUM_ANNUAL": "Medium - Roční",
       "LARGE_MONTHLY": "Large",
       "LARGE_ANNUAL": "Large - Roční",
-      "ENTERPRISE_MONTHLY": "Enterprise",
-      "ENTERPRISE_ANNUAL": "Enterprise - Roční",
+
       "TRIAL": "Zkušební verze"
     },
     "alerts": {

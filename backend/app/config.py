@@ -19,8 +19,7 @@ class Settings(BaseModel):
     
 
 
-    # Google Apps Marketplace App ID (for license checks)
-    google_app_id: str | None = os.getenv("GOOGLE_APP_ID")
+
     google_service_account_file: str = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", "offdays-local-key.json")
 
     # Cloud Storage Bucket for public assets (avatars)

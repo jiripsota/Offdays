@@ -15,7 +15,7 @@ from .database import SessionLocal
 from . import models
 
 from .billing.manager import SubscriptionManager
-from .billing.google_marketplace import GoogleMarketplaceBillingProvider
+
 from .limiter import limiter # <-- Added
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -214,9 +214,9 @@ async def callback(
         db.flush()
         db.refresh(tenant)
 
-    # 2. Ensure Subscription Exists & Sync
-    billing_provider = GoogleMarketplaceBillingProvider()
-    billing_provider.sync_subscription(db, tenant)
+    # 2. Ensure Subscription Exists (Trial)
+    sub_manager = SubscriptionManager(db)
+    sub_manager.ensure_trial_subscription(tenant)
     
     # 3. Check if user exists (OAuth or Email)
     oauth = (

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { authApi } from "../api/auth";
@@ -7,7 +8,7 @@ import { SplashScreen } from "@/components/common/SplashScreen";
 import logo from "../assets/logo.png";
 import { useTranslation, Trans } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, ShieldCheck, Lock, Globe } from "lucide-react";
+import { AlertCircle, Globe, Users } from "lucide-react";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -16,8 +17,27 @@ export function LoginPage() {
   const { data: user, isLoading } = useCurrentUser();
   
   const [showSplash, setShowSplash] = useState(true);
-
   const errorMsg = searchParams.get("error");
+
+  // Parallax Motion Values
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Smooth springs for fluid movement
+  const springConfig = { damping: 25, stiffness: 150 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  // Map mouse position to subtle movement (max 30px displacement)
+  const backgroundX = useTransform(smoothX, [0, 1], [-25, 25]);
+  const backgroundY = useTransform(smoothY, [0, 1], [-15, 15]);
+
+  const handleGlobalMouseMove = (e: React.MouseEvent) => {
+    const x = e.clientX / window.innerWidth;
+    const y = e.clientY / window.innerHeight;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -49,42 +69,55 @@ export function LoginPage() {
   }
 
   return (
-    <div className="w-full h-screen lg:grid lg:grid-cols-2 bg-background">
+    <div 
+      onMouseMove={handleGlobalMouseMove}
+      className="w-full h-screen lg:grid lg:grid-cols-2 bg-background select-none"
+    >
       {/* Left Panel - Hero/Branding */}
-      <div className="hidden lg:flex flex-col justify-between bg-zinc-900 dark:bg-zinc-950 p-12 text-white relative overflow-hidden">
-         {/* Background pattern */}
-         <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-               <path d="M0 100 C 20 0 50 0 100 100 Z" fill="currentColor" />
-            </svg>
+      <div 
+        className="hidden lg:flex flex-col justify-between bg-zinc-950 p-16 text-white relative overflow-hidden"
+      >
+         {/* Background Visual Asset - Single Layer Parallax */}
+         <motion.div 
+            style={{ x: backgroundX, y: backgroundY, scale: 1.15 }}
+            className="absolute inset-0 z-0 pointer-events-none"
+         >
+            <img 
+               src="/src/assets/login-hero.png" 
+               alt="" 
+               className="w-full h-full object-cover opacity-60"
+            />
+         </motion.div>
+
+         {/* Soft gradient to maintain readability */}
+         <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/40 to-transparent z-[1]" />
+         
+         {/* Top branding area - PROMINENT but balanced */}
+         <div className="flex items-center gap-6 relative z-10">
+             <img src={logo} alt="Offdays Logo" className="h-16 w-16 drop-shadow-xl" />
+             <span className="text-4xl font-black tracking-tighter">
+             <span className="text-white">Off</span>
+             <span className="text-primary font-bold">days</span>
+          </span>
          </div>
 
-         {/* Logo Area */}
-         <div className="flex items-center gap-3 relative z-10">
-             <img src={logo} alt="Offdays Logo" className="h-10 w-10" />
-             <span className="text-2xl font-bold tracking-tight">
-               <span className="text-white">Off</span>
-               <span className="text-[#0ECDBF]">days</span>
-             </span>
-         </div>
-
-         {/* Hero Content */}
-         <div className="relative z-10 space-y-6 max-w-md">
-            <h2 className="text-4xl font-bold leading-tight">
+         {/* Central marketing content - BALANCED SCALE */}
+         <div className="relative z-10 space-y-6 max-w-lg self-start">
+            <h2 className="text-5xl font-black leading-tight tracking-tight text-white drop-shadow-lg">
                {t("auth.hero_title")}
             </h2>
-            <p className="text-zinc-400 text-lg">
+            <p className="text-zinc-100 text-lg leading-relaxed font-semibold max-w-md drop-shadow-sm opacity-90">
                {t("auth.hero_subtitle")}
             </p>
          </div>
 
-         {/* Features / Footer */}
-         <div className="relative z-10 flex gap-6 text-sm text-zinc-500 font-medium">
-            <div className="flex items-center gap-2">
-               <ShieldCheck className="h-4 w-4" /> {t("auth.feature_security")}
+         {/* Bottom features line - COMPACT */}
+         <div className="relative z-10 flex flex-wrap gap-4 text-xs text-zinc-100 font-bold uppercase tracking-widest pt-8">
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-md">
+               <Globe className="h-4 w-4 text-primary" /> {t("auth.feature_security")}
             </div>
-            <div className="flex items-center gap-2">
-               <Lock className="h-4 w-4" /> {t("auth.feature_encryption")}
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-md">
+               <Users className="h-4 w-4 text-primary" /> {t("auth.feature_encryption")}
             </div>
          </div>
       </div>

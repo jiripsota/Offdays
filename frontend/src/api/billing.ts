@@ -22,7 +22,4 @@ export const getBillingStatus = async (): Promise<BillingStatus> => {
   return response;
 };
 
-export const syncSubscription = async (): Promise<any> => {
-  const response = await api.post("/billing/sync");
-  return response;
-};
+

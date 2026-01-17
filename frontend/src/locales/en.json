@@ -160,7 +160,6 @@
     "trial_ends": "Trial ends on {{date}}",
     "seats": "Seats",
     "seats_detail": "{{used}} of {{limit}} seats used",
-    "sync": "Sync with Marketplace",
     "growth_shield_limit": "Growth Shield hard limit: {{limit}} users",
     "manage_subscription": "Manage Subscription",
     "status_types": {
@@ -182,8 +181,7 @@
       "MEDIUM_ANNUAL": "Medium - Annual",
       "LARGE_MONTHLY": "Large",
       "LARGE_ANNUAL": "Large - Annual",
-      "ENTERPRISE_MONTHLY": "Enterprise",
-      "ENTERPRISE_ANNUAL": "Enterprise - Annual",
+
       "TRIAL": "Trial"
     },
     "alerts": {

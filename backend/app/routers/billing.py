@@ -4,7 +4,6 @@ from app import models, schemas
 from app.auth_deps import get_current_user
 from app.database import SessionLocal
 from app.billing.manager import SubscriptionManager
-from app.billing.google_marketplace import GoogleMarketplaceBillingProvider
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -31,21 +30,11 @@ def get_current_subscription(
         sub = manager.get_subscription(tenant.id)
         
         if not sub:
-            print(f"No subscription for tenant {tenant.id}, attempting sync...")
-            # If no subscription found, try to sync/create default trial
-            provider = GoogleMarketplaceBillingProvider()
-            try:
-                sub = provider.sync_subscription(db, tenant)
-            except Exception as e:
-                print(f"Sync failed: {e}")
-                import traceback
-                traceback.print_exc()
-                # Fallback to none status if sync fails
-                pass
+            print(f"No subscription for tenant {tenant.id}, creating default trial...")
+            sub = manager.ensure_trial_subscription(tenant)
             
-            # If still no sub (should handle this case, though sync_subscription ensures one usually)
             if not sub:
-                print("Sync failed to create subscription.")
+                print("Failed to create subscription.")
                 return {
                     "status": "none", 
                     "plan": None, 
@@ -95,24 +84,7 @@ def get_current_subscription(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
 
-@router.post("/sync")
-def sync_subscription(
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Force sync with Google Marketplace (Admin only).
-    """
-    if not current_user.is_admin:
-         raise HTTPException(status_code=403, detail="Not authorized")
 
-    user_domain = current_user.email.split("@")[-1]
-    tenant = db.query(models.Tenant).filter_by(domain=user_domain).first()
-    
-    provider = GoogleMarketplaceBillingProvider()
-    sub = provider.sync_subscription(db, tenant)
-    
-    return {"status": "synced", "subscription_status": sub.status}
 
 from pydantic import BaseModel
 

@@ -149,8 +149,8 @@ export function SettingsPage() {
                             <Button 
                                 variant="outline" 
                                 onClick={() => syncMutation.mutate()} 
-                                disabled={syncMutation.isPending}
-                                className="hover:bg-primary/5 border-primary/20"
+                                disabled={syncMutation.isPending || !tenant?.shared_calendar_id}
+                                className="hover:bg-primary/5 border-primary/20 disabled:opacity-50"
                             >
                                 {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                                 {t("settings.sync_now", "Synchronize All")}
@@ -177,18 +177,6 @@ export function SettingsPage() {
                                     {t("settings.setup_steps", "Setup Instructions")}
                                 </h3>
                                 <ol className="text-sm space-y-4 list-decimal list-inside text-muted-foreground">
-                                    <li className="pl-2">
-                                        <a 
-                                            href="https://console.cloud.google.com/apis/library/calendar.googleapis.com" 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="text-primary font-medium hover:underline inline-flex items-center gap-1"
-                                        >
-                                            {t("settings.step_enable_api", "Enable Google Calendar API")}
-                                            <ExternalLink className="h-3 w-3" />
-                                        </a>
-                                        <p className="ml-7 mt-1 text-xs opacity-75">{t("settings.step_enable_api_desc", "This must be done in the Google Cloud project where your service account was created.")}</p>
-                                    </li>
                                     <li className="pl-2">
                                         <span className="font-medium text-foreground">{t("settings.step_share_calendar", "Share your calendar with the service account:")}</span>
                                         {tenant?.service_account_email && (

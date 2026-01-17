@@ -175,8 +175,8 @@ function SidebarContent({
            collapsed ? "w-0 opacity-0 ml-0" : "w-auto opacity-100 ml-3"
         )}>
           <span className="text-2xl font-bold tracking-tight whitespace-nowrap">
-            <span key="branding" className="text-xl font-bold ml-2">
-              Off<span className="text-[#0ECDBF]">days</span>
+            <span className="text-xl font-bold ml-2">
+              Off<span className="text-primary font-bold">days</span>
             </span>
           </span>
         </div>
@@ -337,7 +337,7 @@ function SidebarContent({
           >
             <Avatar className={collapsed ? "h-10 w-10" : "h-10 w-10 shrink-0 border-2 border-primary/10"}>
               <AvatarImage src={avatarUrl} alt={user.full_name || user.email} />
-              <AvatarFallback className="bg-[#031c28] text-primary text-sm font-semibold">
+              <AvatarFallback className="bg-primary/20 text-primary text-sm font-semibold">
                 {getInitials(user.full_name, user.email)}
               </AvatarFallback>
             </Avatar>
@@ -513,7 +513,7 @@ export function AppLayout() {
             <div className="flex items-center gap-2">
               <img src={logo} alt="Vaultiqo" className="h-8 w-8" />
               <span className="text-lg font-bold">
-                <span key="branding">Off<span className="text-[#0ECDBF]">days</span></span>
+                Off<span className="text-primary font-bold">days</span>
               </span>
             </div>
           </div>

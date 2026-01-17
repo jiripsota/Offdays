@@ -26,9 +26,7 @@ class SubscriptionManager:
         if not plan:
             return False
 
-        # If Enterprise or special unlimited plan (not yet defined, but handled loosely)
-        if plan.tier == "enterprise":
-            return True
+
 
         current_count = self.db.query(func.count(models.User.id)).filter(
             models.User.is_active == True,
@@ -66,3 +64,29 @@ class SubscriptionManager:
         ).scalar()
         
         return current_count > sub.plan.max_users
+        
+    def ensure_trial_subscription(self, tenant: models.Tenant) -> models.Subscription:
+        """
+        Ensures a tenant has a 60-day trial subscription.
+        Creates one if it doesn't exist.
+        """
+        from datetime import datetime, timedelta
+        
+        if tenant.subscription:
+            return tenant.subscription
+            
+        # Create a default 2-month (60 days) trial subscription
+        new_sub = models.Subscription(
+            tenant_id=tenant.id,
+            plan_id=PlanID.TRIAL.value,
+            status=models.SubscriptionStatus.TRIAL,
+            provider="internal_trial",
+            trial_ends_at=datetime.utcnow() + timedelta(days=60),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        self.db.add(new_sub)
+        self.db.commit()
+        self.db.refresh(new_sub)
+        tenant.subscription = new_sub
+        return new_sub

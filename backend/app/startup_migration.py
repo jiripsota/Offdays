@@ -12,14 +12,15 @@ def seed_plans(db: Session):
     """
     print("🌱 Seeding plans...")
     try:
-        existing_plans = {p.id for p in db.query(models.Plan).all()}
+        existing_plans = {p.id: p for p in db.query(models.Plan).all()}
         print(f"📊 Found {len(existing_plans)} existing plans")
         
         for plan_id, details in PLAN_DETAILS.items():
-            if plan_id.value not in existing_plans:
-                print(f"✨ Seeding Plan: {plan_id.value}")
+            pid = plan_id.value
+            if pid not in existing_plans:
+                print(f"✨ Seeding Plan: {pid}")
                 plan = models.Plan(
-                    id=plan_id.value,
+                    id=pid,
                     tier=details["tier"],
                     cycle=details["cycle"],
                     max_users=details["max_users"],
@@ -27,9 +28,24 @@ def seed_plans(db: Session):
                     marketplace_sku_id=details["sku"]
                 )
                 db.add(plan)
+            else:
+                # Update existing plan if details changed
+                plan = existing_plans[pid]
+                changed = False
+                if plan.max_users != details["max_users"]:
+                    print(f"🔄 Updating Plan {pid}: max_users {plan.max_users} -> {details['max_users']}")
+                    plan.max_users = details["max_users"]
+                    changed = True
+                if plan.price_cents != details["price_cents"]:
+                    print(f"🔄 Updating Plan {pid}: price_cents {plan.price_cents} -> {details['price_cents']}")
+                    plan.price_cents = details["price_cents"]
+                    changed = True
+                
+                if changed:
+                    db.add(plan)
         
         db.commit()
-        print("✅ Seeding completed successfully")
+        print("✅ Seeding/Update completed successfully")
     except Exception as e:
         print(f"❌ Error seeding plans: {e}")
         import traceback
